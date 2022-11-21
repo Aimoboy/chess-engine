@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-about',
@@ -6,5 +7,11 @@ import { Component } from '@angular/core';
   styleUrls: ['./about.component.scss']
 })
 export class AboutComponent {
+
+  constructor(private _dialogRef: MatDialogRef<AboutComponent>) { }
+
+  onCloseClick() {
+    this._dialogRef.close();
+  }
 
 }

@@ -1,1 +1,23 @@
-<p>about works!</p>
+
+<div class="d-flex flex-column expand">
+    <!-- Title and text -->
+    <div class="d-flex flex-column" style="flex: 4">
+        <span class="expand-x d-flex justify-content-center mat-h1" style="color: white; margin-top: 10px;">
+            About
+        </span>
+
+        <span style="color: white; margin: 0 10px;">
+            This application is a chess engine hobby project. The project started as a fun challenge where I wanted to challenge my colleague's chess AI by creating my own. I have since then continued to develop it after leaving it untouched for the better part of a year.
+            <br>
+            <br>
+            The chess engine itself is written in the Rust programming language, and it is my first big project using Rust. The GUI is written using Angular and Tauri. I chose Angular due to my familiarity with it, and I chose Tauri because I wanted to try it out as a replacement to Electron.
+            Everything is subject to change. I hope in the future to implement an AI using neural networks.
+        </span>
+
+    </div>
+
+    <!-- Close button -->
+    <div class="d-flex justify-content-center align-items-center" style="flex: 1">
+        <button (click)="onCloseClick()" color="primary" style="width: 100px" mat-raised-button>Close</button>
+    </div>
+</div>
