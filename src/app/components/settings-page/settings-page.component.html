@@ -1,0 +1,25 @@
+
+<div class="expand-x d-flex flex-column" style="height: 500px">
+    <!-- Back and Next buttons -->
+    <div class="d-flex" style="justify-content: space-between">
+        <button routerLink="/" style="width: 70px; margin: 10px 10px" color="primary" mat-raised-button>Back</button>
+        <button routerLink="/" style="width: 70px; margin: 10px 10px" color="primary" [disabled]="nextDisabled" mat-raised-button>Next</button>
+    </div>
+
+    <!-- Settings title -->
+    <span class="mat-h1" style="color: white; margin: 0 10px; border-bottom: 2px solid white">Settings</span>
+
+    <!-- Settings -->
+    <div class="expand d-flex flex-row">
+
+        <!-- White -->
+        <div class="mat-h2 d-flex justify-content-center" style="flex: 1; color: white; border-right: 1px solid white">
+            <app-player-settings #whiteSettings class="expand" [name]="'White'"></app-player-settings>
+        </div>
+
+        <!-- Black -->
+        <div class="mat-h2 d-flex justify-content-center" style="flex: 1; color: white; border-left: 1px solid white">
+            <app-player-settings #blackSettings class="expand" [name]="'Black'"></app-player-settings>
+        </div>
+    </div>
+</div>

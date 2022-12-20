@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-import { AboutComponent } from './components/about/about.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -8,18 +7,7 @@ import { AboutComponent } from './components/about/about.component';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'chess-engine';
 
-  constructor(private _matDialog: MatDialog) {}
+  constructor(public router: Router) {}
 
-  onAboutClick() {
-    let dialogRef = this._matDialog.open(AboutComponent, {
-      width: '400px',
-      height: '400px'
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
-    });
-  }
 }

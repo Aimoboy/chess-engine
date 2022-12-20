@@ -2,7 +2,6 @@
   <span class="expand-x center-x mat-display-1">Chess Engine</span>
 </mat-toolbar>
 
-<div class="expand-x d-flex justify-content-center align-items-center flex-column" style="height: 400px">
-  <button class="menu-button" color="primary" mat-raised-button>Play</button>
-  <button (click)="onAboutClick()" class="menu-button" color="primary" mat-raised-button>About</button>
-</div>
+<app-front-page *ngIf="router.url == '/'"></app-front-page>
+
+<router-outlet></router-outlet>
