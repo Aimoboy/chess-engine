@@ -4,7 +4,7 @@ import { FrontPageComponent } from './components/front-page/front-page.component
 import { SettingsPageComponent } from './components/settings-page/settings-page.component';
 
 const routes: Routes = [
-  { path: 'front-page', component: FrontPageComponent },
+  { path: '', component: FrontPageComponent },
   { path: 'settings-page', component: SettingsPageComponent}
 ];
 
