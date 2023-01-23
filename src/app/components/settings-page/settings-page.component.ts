@@ -8,7 +8,7 @@ import { PlayerSettingsComponent } from './player-settings/player-settings.compo
 })
 export class SettingsPageComponent {
 
-  public nextDisabled = true;
+  public nextDisabled = false;
 
   @ViewChild('whiteSettings')
   public whiteSettings: PlayerSettingsComponent | null = null;

@@ -1,0 +1,30 @@
+
+<div class="expand-x d-flex standard-height">
+    <!-- Chat area -->
+    <div class="d-flex flex-column flex-1 m-1">
+        <div class="mat-h2" style="color: white; margin: 0;">
+            Chat
+        </div>
+        <div class="flex-1" style="border: 2px solid white;">
+
+        </div>
+    </div>
+
+    <!-- Board area -->
+    <div class="d-flex justify-content-center align-items-center flex-3 bg-2">
+
+        <div #chessBoard (click)="onBoardClick($event)" class="bg-1" [ngStyle]="{'height': chessBoardCellSize * 8 + 'px', 'width': chessBoardCellSize * 8 + 'px'}">
+            <div *ngFor="let row of [1, 2, 3, 4, 5, 6, 7, 8]; let i = index"
+                 class="expand d-flex flex-row"
+                 [ngStyle]="{'height': chessBoardCellSize + 'px'}">
+                <div *ngFor="let col of [1, 2, 3, 4, 5, 6, 7, 8]; let j = index" style="cursor: pointer;"
+                     [ngStyle]="{'width': chessBoardCellSize + 'px',
+                                 'background-color': i === selectedY && j === selectedX ? 'lightblue' : (i + j) % 2 == 1 ? 'lightgreen' : 'white'}">
+                    <p style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; pointer-events: none !important" onselectstart="return false" unselectable="on">{{boardPosToChessPos(j, i)}}</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+

@@ -9,6 +9,7 @@ import { FrontPageComponent } from './components/front-page/front-page.component
 import { SettingsPageComponent } from './components/settings-page/settings-page.component';
 import { AboutComponent } from './components/about/about.component';
 import { PlayerSettingsComponent } from './components/settings-page/player-settings/player-settings.component';
+import { BoardPageComponent } from './components/board-page/board-page.component';
 
 @NgModule({
   declarations: [
@@ -16,7 +17,8 @@ import { PlayerSettingsComponent } from './components/settings-page/player-setti
     FrontPageComponent,
     SettingsPageComponent,
     AboutComponent,
-    PlayerSettingsComponent
+    PlayerSettingsComponent,
+    BoardPageComponent
   ],
   imports: [
     BrowserModule,
