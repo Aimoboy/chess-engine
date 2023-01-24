@@ -10,6 +10,11 @@ import { ChessType } from 'src/app/enums/ChessType';
   styleUrls: ['./board-page.component.scss']
 })
 export class BoardPageComponent {
+  private selectedCellColor = 'lightblue';
+  private possibleMoveColor = 'red';
+  private whiteCellColor = '#EEEED2';
+  private coloredCellColor = '#769656';
+
   public board = this.fenToBoard('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR');
   public possibleMoves: Position[][][] = [];
   public turn: ChessColor = ChessColor.White;
@@ -26,8 +31,8 @@ export class BoardPageComponent {
     for (let i = 0; i < 8; i++) {
       let tmp = [];
       for (let j = 0; j < 8; j++) {
-        if (i === 7 && j === 0) {
-          tmp.push([new Position(0, 0)])
+        if (i === 6 && j === 0) {
+          tmp.push([new Position(0, 5)])
         } else {
           tmp.push([]);
         }
@@ -37,6 +42,7 @@ export class BoardPageComponent {
   }
 
   public onBoardClick(e: MouseEvent) {
+    // Find clicked cell
     let bounding = this.chessBoard?.nativeElement.getBoundingClientRect();
 
     let xBoardPos = e.clientX - bounding.x;
@@ -45,6 +51,14 @@ export class BoardPageComponent {
     let cellX = Math.floor(xBoardPos / this.chessBoardCellSize);
     let cellY = Math.floor(yBoardPos / this.chessBoardCellSize);
 
+    // Deselect
+    if (this.board[cellY][cellX] === null || this.board[cellY][cellX]?.color !== this.turn) {
+      this.selectedX = -1;
+      this.selectedY = -1;
+      return;
+    }
+
+    // Select if clicked cell has an owned piece
     if (this.board[cellY][cellX]?.color === this.turn) {
       this.selectedX = cellX;
       this.selectedY = cellY;
@@ -161,19 +175,19 @@ export class BoardPageComponent {
 
   public getCellColor(x: number, y: number): string {
     if (this.selectedX === x && this.selectedY === y) {
-      return 'lightblue';
+      return this.selectedCellColor;
     }
 
     if (this.hasCellSelected() &&
         this.possibleMoves[this.selectedY][this.selectedX].filter(item => item.x === x).filter(item => item.y === y).length > 0) {
-      return 'red';
+      return this.possibleMoveColor;
     }
 
     if ((x + y) % 2 === 1) {
-      return '#769656';
+      return this.coloredCellColor;
     }
 
-    return '#EEEED2';
+    return this.whiteCellColor;
   }
 
   public getCellCursor(x: number, y: number): string {
@@ -183,8 +197,8 @@ export class BoardPageComponent {
 
     if (this.hasCellSelected() &&
         this.possibleMoves[this.selectedY][this.selectedX].filter(item => item.x === x).filter(item => item.y === y).length > 0) {
-    return 'pointer';
-  }
+      return 'pointer';
+    }
 
     return 'cursor';
   }
