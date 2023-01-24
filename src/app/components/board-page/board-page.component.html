@@ -5,8 +5,8 @@
         <div class="mat-h2" style="color: white; margin: 0;">
             Log
         </div>
-        <div class="flex-1" style="border: 2px solid white;">
-
+        <div class="flex-1" style="border: 2px solid white; padding: 0 0 0 1mm;">
+            <p style="margin: 0;" *ngFor="let logItem of log; let i = index" [ngStyle]="{'color': i % 2 == 0 ? 'white' : 'grey'}">{{i+1}}: {{logItem}}</p>
         </div>
     </div>
 

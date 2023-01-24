@@ -19,6 +19,8 @@ export class BoardPageComponent {
   public possibleMoves: Position[][][] = [];
   public turn: ChessColor = ChessColor.White;
 
+  public log: string[] = [];
+
   public chessBoardCellSize = 60;
 
   public selectedX: number = -1;
@@ -51,6 +53,12 @@ export class BoardPageComponent {
     let cellX = Math.floor(xBoardPos / this.chessBoardCellSize);
     let cellY = Math.floor(yBoardPos / this.chessBoardCellSize);
 
+    // Make move
+    if (this.hasCellSelected() &&
+        this.possibleMoves[this.selectedY][this.selectedX].filter(item => item.x === cellX).filter(item => item.y === cellY).length > 0) {
+      this.log.push(`${this.boardPosToChessPos(this.selectedX, this.selectedY)} to ${this.boardPosToChessPos(cellX, cellY)}`)
+    }
+
     // Deselect
     if (this.board[cellY][cellX] === null || this.board[cellY][cellX]?.color !== this.turn) {
       this.selectedX = -1;
@@ -69,7 +77,7 @@ export class BoardPageComponent {
     let letter = String.fromCharCode(97 + x);
     let number = 8 - y;
 
-    return `${letter} ${number}`
+    return `${letter}${number}`
   }
 
   public chessTypeToImg(type: ChessType, color: ChessColor): string {
