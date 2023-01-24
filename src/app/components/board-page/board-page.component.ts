@@ -3,6 +3,7 @@ import { ChessPiece } from 'src/app/classes/ChessPiece';
 import { Position } from 'src/app/classes/Position';
 import { ChessColor } from 'src/app/enums/ChessColor';
 import { ChessType } from 'src/app/enums/ChessType';
+import { invoke } from '@tauri-apps/api';
 
 @Component({
   selector: 'app-board-page',
@@ -15,9 +16,10 @@ export class BoardPageComponent {
   private whiteCellColor = '#EEEED2';
   private coloredCellColor = '#769656';
 
-  public board = this.fenToBoard('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR');
+  private currentFen: string;
+  public board: (ChessPiece | null)[][];
   public possibleMoves: Position[][][] = [];
-  public turn: ChessColor = ChessColor.White;
+  public turn: ChessColor = ChessColor.None;
 
   public log: string[] = [];
 
@@ -30,6 +32,37 @@ export class BoardPageComponent {
   public chessBoard: ElementRef | undefined;
 
   constructor() {
+    this.currentFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    this.board = this.fenToBoard(this.currentFen);
+    this.turn = this.fenToTurn(this.currentFen);
+
+    invoke<string[]>('fen_to_possible_moves', {'fen': this.currentFen}).then((movs) => {
+      console.log(movs);
+
+      this.possibleMoves = this.parseMoveListToPossibleMoves(movs);
+    }, (err) => console.log(err));
+  }
+
+  private parseMoveListToPossibleMoves(movs: string[]): Position[][][] {
+    let empty = this.emptyPossibleMoves();
+
+    for (const mov of movs) {
+      if (mov.length !== 5) {
+        throw new Error('Move wrong length, expected 5 but was ' + mov.length);
+      }
+
+      const from = this.chessPosToBoardPos(mov.slice(0, 2));
+      const to = this.chessPosToBoardPos(mov.slice(3, 5));
+
+      empty[from[1]][from[0]].push({x: to[0], y: to[1]});
+    }
+
+    return empty;
+  }
+
+  private emptyPossibleMoves(): Position[][][] {
+    let possibleMovesBoard = [];
+
     for (let i = 0; i < 8; i++) {
       let tmp = [];
       for (let j = 0; j < 8; j++) {
@@ -39,8 +72,10 @@ export class BoardPageComponent {
           tmp.push([]);
         }
       }
-      this.possibleMoves.push(tmp);
+      possibleMovesBoard.push(tmp);
     }
+
+    return possibleMovesBoard;
   }
 
   public onBoardClick(e: MouseEvent) {
@@ -56,7 +91,8 @@ export class BoardPageComponent {
     // Make move
     if (this.hasCellSelected() &&
         this.possibleMoves[this.selectedY][this.selectedX].filter(item => item.x === cellX).filter(item => item.y === cellY).length > 0) {
-      this.log.push(`${this.boardPosToChessPos(this.selectedX, this.selectedY)} to ${this.boardPosToChessPos(cellX, cellY)}`)
+      this.log.push(`${this.boardPosToChessPos(this.selectedX, this.selectedY)} to ${this.boardPosToChessPos(cellX, cellY)}`);
+      return;
     }
 
     // Deselect
@@ -67,17 +103,64 @@ export class BoardPageComponent {
     }
 
     // Select if clicked cell has an owned piece
-    if (this.board[cellY][cellX]?.color === this.turn) {
+    if (this.board[cellY][cellX]?.color === this.turn && this.possibleMoves[cellY][cellX].length > 0) {
       this.selectedX = cellX;
       this.selectedY = cellY;
     }
   }
 
-  public boardPosToChessPos(x: number, y: number): string {
+  private boardPosToChessPos(x: number, y: number): string {
     let letter = String.fromCharCode(97 + x);
     let number = 8 - y;
 
     return `${letter}${number}`
+  }
+
+  private chessPosToBoardPos(str: string): [number, number] {
+    if (str.length !== 2) {
+      throw new Error('Wrong chess pos length')
+    }
+
+    if (str[0] < 'a' || str[0] > 'h') {
+      throw new Error('Invalid chess pos letter');
+    }
+
+    if (str[1] < '1' || str[1] > '8') {
+      throw new Error('Invalid chess pos number');
+    }
+
+    let letterNum;
+
+    switch (str[0]) {
+      case 'a':
+        letterNum = 0;
+        break;
+      case 'b':
+        letterNum = 1;
+        break;
+      case 'c':
+        letterNum = 2;
+        break;
+      case 'd':
+        letterNum = 3;
+        break;
+      case 'e':
+        letterNum = 4;
+        break;
+      case 'f':
+        letterNum = 5;
+        break;
+      case 'g':
+        letterNum = 6;
+        break;
+      case 'h':
+        letterNum = 7;
+        break;
+      default:
+        letterNum = -1;
+    }
+
+    return [letterNum, 8 - parseInt(str[1])];
   }
 
   public chessTypeToImg(type: ChessType, color: ChessColor): string {
@@ -116,11 +199,12 @@ export class BoardPageComponent {
     return `https://images.chesscomfiles.com/chess-themes/pieces/neo/150/${piece}.png`
   }
 
-  public fenToBoard(fenString: string) {
+  private fenToBoard(fenString: string): (ChessPiece | null)[][] {
+    let fenBoard = fenString.split(' ')[0];
     let board = [];
     let tmp: (ChessPiece | null)[] = [];
 
-    for (let char of fenString) {
+    for (let char of fenBoard) {
       switch (char) {
         case 'P':
           tmp.push(new ChessPiece(ChessType.Pawn, ChessColor.White));
@@ -164,7 +248,7 @@ export class BoardPageComponent {
           break;
         default:
           if (char < '1' || char > '8') {
-            throw new Error('Invalid char in fen string');
+            throw new Error('Invalid char in FEN string');
           }
 
           const num = parseInt(char);
@@ -179,6 +263,19 @@ export class BoardPageComponent {
     board.push(tmp);
 
     return board;
+  }
+
+  private fenToTurn(fenString: string): ChessColor {
+    let fenTurn = fenString.split(' ')[1];
+
+    switch (fenTurn) {
+      case 'w':
+        return ChessColor.White;
+      case 'b':
+        return ChessColor.Black;
+      default:
+        throw new Error('Wrong turn character for FEN string');
+    }
   }
 
   public getCellColor(x: number, y: number): string {
