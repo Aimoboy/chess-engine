@@ -1,4 +1,8 @@
 
+use crate::board_types::{
+    normalboard::NormalBoard
+};
+
 pub fn get_letter(letter: usize) -> char {
     match letter {
         0 => 'a',
@@ -60,4 +64,8 @@ pub fn validate_move_string(move_str: &String) -> bool {
     }
 
     true
+}
+
+pub fn fen_to_normalboard(fen: &str) -> NormalBoard {
+    NormalBoard::new_start_board()
 }
