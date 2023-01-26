@@ -127,7 +127,9 @@ pub struct NormalBoard {
     whiteLeftCastle: bool,
     whiteRightCastle: bool,
     blackLeftCastle: bool,
-    blackRightCastle: bool
+    blackRightCastle: bool,
+    halfMovesSincePieceCaptureOrPawnAdvance: i32,
+    fullMoveCounter: i32
 }
 
 impl NormalBoard {
@@ -204,7 +206,9 @@ impl NormalBoard {
             whiteLeftCastle: false,
             whiteRightCastle: false,
             blackLeftCastle: false,
-            blackRightCastle: false
+            blackRightCastle: false,
+            halfMovesSincePieceCaptureOrPawnAdvance: 0,
+            fullMoveCounter: 1
         }
     }
 
@@ -243,7 +247,9 @@ impl NormalBoard {
             whiteLeftCastle: true,
             whiteRightCastle: true,
             blackLeftCastle: true,
-            blackRightCastle: true
+            blackRightCastle: true,
+            halfMovesSincePieceCaptureOrPawnAdvance: 0,
+            fullMoveCounter: 1
         }
     }
 
