@@ -123,13 +123,13 @@ impl<'a> Iterator for NormalBoardIter<'a> {
 #[derive(Debug, Clone)]
 pub struct NormalBoard {
     board: [[Option<ChessPiece>; 8]; 8],
-    enPassent: Option<(i32, i32)>,
-    whiteLeftCastle: bool,
-    whiteRightCastle: bool,
-    blackLeftCastle: bool,
-    blackRightCastle: bool,
-    halfMovesSincePieceCaptureOrPawnAdvance: i32,
-    fullMoveCounter: i32
+    en_passent: Option<(i32, i32)>,
+    white_left_castle: bool,
+    white_right_castle: bool,
+    black_left_castle: bool,
+    black_right_castle: bool,
+    half_moves_since_piece_capture_or_pawn_advance: i32,
+    full_move_counter: i32
 }
 
 impl NormalBoard {
@@ -202,13 +202,13 @@ impl NormalBoard {
     pub fn new_empty_board() -> Self {
         Self {
             board: Self::blank_board(),
-            enPassent: None,
-            whiteLeftCastle: false,
-            whiteRightCastle: false,
-            blackLeftCastle: false,
-            blackRightCastle: false,
-            halfMovesSincePieceCaptureOrPawnAdvance: 0,
-            fullMoveCounter: 1
+            en_passent: None,
+            white_left_castle: false,
+            white_right_castle: false,
+            black_left_castle: false,
+            black_right_castle: false,
+            half_moves_since_piece_capture_or_pawn_advance: 0,
+            full_move_counter: 1
         }
     }
 
@@ -243,13 +243,13 @@ impl NormalBoard {
 
         Self {
             board: board,
-            enPassent: None,
-            whiteLeftCastle: true,
-            whiteRightCastle: true,
-            blackLeftCastle: true,
-            blackRightCastle: true,
-            halfMovesSincePieceCaptureOrPawnAdvance: 0,
-            fullMoveCounter: 1
+            en_passent: None,
+            white_left_castle: true,
+            white_right_castle: true,
+            black_left_castle: true,
+            black_right_castle: true,
+            half_moves_since_piece_capture_or_pawn_advance: 0,
+            full_move_counter: 1
         }
     }
 
