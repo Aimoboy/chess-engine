@@ -38,7 +38,8 @@ mod evaluation_functions {
 
 use crate::{
   functions::{
-    fen_to_normalboard
+    parse_fen_to_normalboard,
+    normalboard_to_fen
   },
   board_types::{
     normalboard::NormalBoard
@@ -95,33 +96,15 @@ fn main() {
 }
 
 #[tauri::command]
-fn fen_to_possible_moves(fen: String) -> Vec<String> {
+fn fen_to_possible_moves(fen: String) -> Vec<(String, String)> {
   println!("{}", fen);
+  let (normalboard, turn) = parse_fen_to_normalboard(&fen);
 
-  let mut split = fen.split_whitespace();
-
-  let board_string = split.nth(0).expect("FEN board part");
-  let turn_string = split.nth(0).expect("FEN turn part");
-  let castle_sttring = split.nth(0).expect("FEN castle part");
-  let passent_string = split.nth(0).expect("FEN en passent part");
-  let half_move_string = split.nth(0).expect("FEN half move part");
-  let full_move_string = split.nth(0).expect("FEN full move part");
-
-  println!("{}", board_string);
-  println!("{}", turn_string);
-  println!("{}", castle_sttring);
-  println!("{}", passent_string);
-  println!("{}", half_move_string);
-  println!("{}", full_move_string);
-
-  let normalboard: NormalBoard = fen_to_normalboard(board_string);
-  let turn = match turn_string {
-      "w" => PieceColor::White,
-      _ => PieceColor::Black
-  };
+  println!("{}", normalboard_to_fen(&normalboard, turn));
+  println!("{}", normalboard.board_ascii(true));
 
   normalboard.generate_possible_moves(None, turn)
   .expect("Test!")
   .into_iter()
-  .map(|x| x.0).collect()
+  .map(|(mov, board)| (mov, normalboard_to_fen(&board, turn.opposite_color()))).collect()
 }

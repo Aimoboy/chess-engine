@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { ChessPiece } from 'src/app/classes/ChessPiece';
-import { Position } from 'src/app/classes/Position';
+import { PossibleMove } from 'src/app/classes/Position';
 import { ChessColor } from 'src/app/enums/ChessColor';
 import { ChessType } from 'src/app/enums/ChessType';
 import { invoke } from '@tauri-apps/api';
@@ -18,7 +18,7 @@ export class BoardPageComponent {
 
   private currentFen: string;
   public board: (ChessPiece | null)[][];
-  public possibleMoves: Position[][][] = [];
+  public possibleMoves: PossibleMove[][][] = [];
   public turn: ChessColor = ChessColor.None;
 
   public log: string[] = [];
@@ -36,41 +36,37 @@ export class BoardPageComponent {
     this.board = this.fenToBoard(this.currentFen);
     this.turn = this.fenToTurn(this.currentFen);
 
-    invoke<string[]>('fen_to_possible_moves', {'fen': this.currentFen}).then((movs) => {
+    invoke<string[][]>('fen_to_possible_moves', {'fen': this.currentFen}).then((movs) => {
       console.log(movs);
 
       this.possibleMoves = this.parseMoveListToPossibleMoves(movs);
     }, (err) => console.log(err));
   }
 
-  private parseMoveListToPossibleMoves(movs: string[]): Position[][][] {
+  private parseMoveListToPossibleMoves(movs: string[][]): PossibleMove[][][] {
     let empty = this.emptyPossibleMoves();
 
     for (const mov of movs) {
-      if (mov.length !== 5) {
-        throw new Error('Move wrong length, expected 5 but was ' + mov.length);
+      if (mov[0].length !== 5) {
+        throw new Error('Move wrong length, expected 5 but was ' + mov[0].length);
       }
 
-      const from = this.chessPosToBoardPos(mov.slice(0, 2));
-      const to = this.chessPosToBoardPos(mov.slice(3, 5));
+      const from = this.chessPosToBoardPos(mov[0].slice(0, 2));
+      const to = this.chessPosToBoardPos(mov[0].slice(3, 5));
 
-      empty[from[1]][from[0]].push({x: to[0], y: to[1]});
+      empty[from[1]][from[0]].push({x: to[0], y: to[1], fen: mov[1]});
     }
 
     return empty;
   }
 
-  private emptyPossibleMoves(): Position[][][] {
+  private emptyPossibleMoves(): PossibleMove[][][] {
     let possibleMovesBoard = [];
 
     for (let i = 0; i < 8; i++) {
       let tmp = [];
       for (let j = 0; j < 8; j++) {
-        if (i === 6 && j === 0) {
-          tmp.push([new Position(0, 5)])
-        } else {
-          tmp.push([]);
-        }
+        tmp.push([]);
       }
       possibleMovesBoard.push(tmp);
     }
@@ -91,6 +87,26 @@ export class BoardPageComponent {
     // Make move
     if (this.hasCellSelected() && this.selectedCellHasPossibleMoveForCoords(cellX, cellY)) {
       this.log.push(`${this.boardPosToChessPos(this.selectedX, this.selectedY)} to ${this.boardPosToChessPos(cellX, cellY)}`);
+      const newFEN = this.possibleMoves[this.selectedY][this.selectedX].filter(item => item.x === cellX).filter(item => item.y === cellY)[0].fen;
+      this.log.push(newFEN);
+      this.currentFen = newFEN;
+      this.board = this.fenToBoard(this.currentFen);
+
+      this.selectedX = -1;
+      this.selectedY = -1;
+
+      invoke<string[][]>('fen_to_possible_moves', {'fen': this.currentFen}).then((movs) => {
+        console.log(movs);
+
+        if (this.turn === ChessColor.White) {
+          this.turn = ChessColor.Black;
+        } else {
+          this.turn = ChessColor.White;
+        }
+  
+        this.possibleMoves = this.parseMoveListToPossibleMoves(movs);
+      }, (err) => console.log(err));
+
       return;
     }
 
@@ -315,6 +331,10 @@ export class BoardPageComponent {
   }
 
   private cellHasAnyPossibleMoves(x: number, y: number): boolean {
+    if (this.possibleMoves.length === 0) {
+      return false;
+    }
+
     return this.possibleMoves[y][x]?.length > 0;
   }
 
