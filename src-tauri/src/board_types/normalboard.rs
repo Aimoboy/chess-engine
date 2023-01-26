@@ -122,7 +122,12 @@ impl<'a> Iterator for NormalBoardIter<'a> {
 // Letter is first index then number
 #[derive(Debug, Clone)]
 pub struct NormalBoard {
-    board: [[Option<ChessPiece>; 8]; 8]
+    board: [[Option<ChessPiece>; 8]; 8],
+    enPassent: Option<(i32, i32)>,
+    whiteLeftCastle: bool,
+    whiteRightCastle: bool,
+    blackLeftCastle: bool,
+    blackRightCastle: bool
 }
 
 impl NormalBoard {
@@ -194,7 +199,12 @@ impl NormalBoard {
 
     pub fn new_empty_board() -> Self {
         Self {
-            board: Self::blank_board()
+            board: Self::blank_board(),
+            enPassent: None,
+            whiteLeftCastle: false,
+            whiteRightCastle: false,
+            blackLeftCastle: false,
+            blackRightCastle: false
         }
     }
 
@@ -228,7 +238,12 @@ impl NormalBoard {
         board[7][7] = Some(ChessPiece::new(PieceType::Rook, PieceColor::Black));
 
         Self {
-            board: board
+            board: board,
+            enPassent: None,
+            whiteLeftCastle: true,
+            whiteRightCastle: true,
+            blackLeftCastle: true,
+            blackRightCastle: true
         }
     }
 
