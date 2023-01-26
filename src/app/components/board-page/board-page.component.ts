@@ -89,8 +89,7 @@ export class BoardPageComponent {
     let cellY = Math.floor(yBoardPos / this.chessBoardCellSize);
 
     // Make move
-    if (this.hasCellSelected() &&
-        this.possibleMoves[this.selectedY][this.selectedX].filter(item => item.x === cellX).filter(item => item.y === cellY).length > 0) {
+    if (this.hasCellSelected() && this.selectedCellHasPossibleMoveForCoords(cellX, cellY)) {
       this.log.push(`${this.boardPosToChessPos(this.selectedX, this.selectedY)} to ${this.boardPosToChessPos(cellX, cellY)}`);
       return;
     }
@@ -296,20 +295,27 @@ export class BoardPageComponent {
   }
 
   public getCellCursor(x: number, y: number): string {
-    if (this.board[y][x]?.color === this.turn) {
+    if (this.board[y][x]?.color === this.turn && this.cellHasAnyPossibleMoves(x, y)) {
       return 'pointer';
     }
 
-    if (this.hasCellSelected() &&
-        this.possibleMoves[this.selectedY][this.selectedX].filter(item => item.x === x).filter(item => item.y === y).length > 0) {
+    if (this.hasCellSelected() && this.selectedCellHasPossibleMoveForCoords(x, y)) {
       return 'pointer';
     }
 
-    return 'cursor';
+    return 'default';
   }
 
   private hasCellSelected() {
     return this.selectedX !== -1 && this.selectedY !== -1;
+  }
+
+  private selectedCellHasPossibleMoveForCoords(x: number, y: number): boolean {
+    return this.possibleMoves[this.selectedY][this.selectedX]?.filter(item => item.x === x).filter(item => item.y === y).length > 0;
+  }
+
+  private cellHasAnyPossibleMoves(x: number, y: number): boolean {
+    return this.possibleMoves[y][x]?.length > 0;
   }
 
 }
