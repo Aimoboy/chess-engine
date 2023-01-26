@@ -29,7 +29,7 @@ pub struct ChessPiece {
 }
 
 impl ChessPiece {
-    fn new(typ: PieceType, color: PieceColor) -> Self {
+    pub fn new(typ: PieceType, color: PieceColor) -> Self {
         Self {
             typ,
             color,
@@ -159,6 +159,34 @@ impl NormalBoard {
 
     pub fn set_full_moves(&mut self, val: i32) {
         self.full_move_counter = val;
+    }
+
+    pub fn get_en_passent(&self) -> Option<(i32, i32)> {
+        return self.en_passent;
+    }
+
+    pub fn get_white_left_castle(&self) -> bool {
+        return self.white_left_castle;
+    }
+
+    pub fn get_white_right_castle(&self) -> bool {
+        return self.white_right_castle;
+    }
+
+    pub fn get_black_left_castle(&self) -> bool {
+        return self.black_left_castle;
+    }
+
+    pub fn get_black_right_castle(&self) -> bool {
+        return self.black_right_castle;
+    }
+
+    pub fn get_half_moves(&self) -> i32 {
+        return self.half_moves_since_piece_capture_or_pawn_advance;
+    }
+
+    pub fn get_full_moves(&self) -> i32 {
+        return self.full_move_counter;
     }
 
     pub fn iter(&self) -> NormalBoardIter {
