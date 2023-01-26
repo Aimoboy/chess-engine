@@ -133,6 +133,34 @@ pub struct NormalBoard {
 }
 
 impl NormalBoard {
+    pub fn set_en_passent(&self, val: Option<(i32, i32)>) {
+        self.en_passent = val;
+    }
+
+    pub fn set_white_left_castle(&self, val: bool) {
+        self.white_left_castle = val;
+    }
+
+    pub fn set_white_right_castle(&self, val: bool) {
+        self.white_right_castle = val;
+    }
+
+    pub fn set_black_left_castle(&self, val: bool) {
+        self.black_left_castle = val;
+    }
+
+    pub fn set_black_right_castle(&self, val: bool) {
+        self.black_right_castle = val;
+    }
+
+    pub fn set_half_moves(&self, val: i32) {
+        self.half_moves_since_piece_capture_or_pawn_advance = val;
+    }
+
+    pub fn set_full_moves(&self, val: i32) {
+        self.full_move_counter = val;
+    }
+
     pub fn iter(&self) -> NormalBoardIter {
         NormalBoardIter::new(self)
     }
