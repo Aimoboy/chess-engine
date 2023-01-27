@@ -1,6 +1,6 @@
 use crate::board_types::bitboard::Constants;
 use crate::enums::{
-    piece_color::PieceColor,
+    chess_color::ChessColor,
     chess_error::ChessError
 };
 
@@ -14,10 +14,10 @@ use crate::traits::chess_board_contract::ChessBoardContract;
 use std::io;
 use std::io::Write;
 
-pub fn player_move<T: ChessBoardContract>(board: &T, previous_board: Option<&T>, board_history: &Vec<T>, turn: PieceColor, player: &Player<T>, constants: &Constants) -> Result<String, ChessError> {
+pub fn player_move<T: ChessBoardContract>(board: &T, board_history: &Vec<T>, turn: ChessColor, player: &Player<T>, constants: &Constants) -> Result<String, ChessError> {
     let color_str = match turn {
-        PieceColor::White => "White",
-        PieceColor::Black => "Black"
+        ChessColor::White => "White",
+        ChessColor::Black => "Black"
     };
 
     println!("It is {}'s turn! (You)\n", color_str);
@@ -42,7 +42,7 @@ pub fn player_move<T: ChessBoardContract>(board: &T, previous_board: Option<&T>,
             continue;
         }
 
-        let valid_move = board.generate_moves(previous_board, turn, constants)?.iter().any(|mov| (*mov).0 == inp);
+        let valid_move = board.generate_moves(turn, constants)?.iter().any(|mov| (*mov).0 == inp);
         if !valid_move {
             print!("Invalid move!");
             continue;

@@ -1,8 +1,8 @@
-use crate::enums::piece_color::PieceColor;
+use crate::enums::chess_color::ChessColor;
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum EndType {
     NoEnd,
     Tie,
-    Checkmate(PieceColor)
+    Checkmate(ChessColor)
 }

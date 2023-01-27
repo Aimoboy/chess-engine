@@ -3,14 +3,13 @@ use crate::traits::chess_board_contract::ChessBoardContract;
 use crate::{Player, EvaluationFunction};
 
 use crate::enums::{
-    piece_color::PieceColor,
+    chess_color::ChessColor,
     chess_error::ChessError
 };
 
 pub fn minimax_move<T: ChessBoardContract + Clone + Send + Sync>(board: &T,
-                                                                 prev_board: Option<&T>,
                                                                  board_history: &Vec<T>,
-                                                                 turn: PieceColor,
+                                                                 turn: ChessColor,
                                                                  player: &Player<T>,
                                                                  eval_func: EvaluationFunction<T>,
                                                                  constants: &Constants,
@@ -20,7 +19,7 @@ pub fn minimax_move<T: ChessBoardContract + Clone + Send + Sync>(board: &T,
     println!("Looking {} moves ahead...", player.moves_ahead);
     let start_time = std::time::Instant::now();
 
-    let possible_moves = board.generate_moves(prev_board, turn, constants)?;
+    let possible_moves = board.generate_moves(turn, constants)?;
 
     let evaluated_moves: Vec<(i32, String)> = match multi_threading {
         false => {
@@ -32,7 +31,6 @@ pub fn minimax_move<T: ChessBoardContract + Clone + Send + Sync>(board: &T,
         
                 let eval = minimax_move_helper(
                     mov_board,
-                    Some(&board),
                     turn.opposite_color(),
                     eval_func,
                     &new_board_history,
@@ -75,7 +73,6 @@ pub fn minimax_move<T: ChessBoardContract + Clone + Send + Sync>(board: &T,
 
                             let eval = minimax_move_helper(
                                 &mov_board,
-                                Some(&board),
                                 turn.opposite_color(),
                                 eval_func,
                                 &new_history,
@@ -111,7 +108,7 @@ pub fn minimax_move<T: ChessBoardContract + Clone + Send + Sync>(board: &T,
         }
     }?;
 
-    let maximizing_player = turn == PieceColor::White;
+    let maximizing_player = turn == ChessColor::White;
     let best_move = match maximizing_player {
         true => evaluated_moves.iter().max_by_key(|(value, _)| value),
         false => evaluated_moves.iter().min_by_key(|(value, _)| value),
@@ -127,8 +124,7 @@ pub fn minimax_move<T: ChessBoardContract + Clone + Send + Sync>(board: &T,
 }
 
 fn minimax_move_helper<T: ChessBoardContract + Clone>(board: &T,
-                                                      prev_board: Option<&T>,
-                                                      turn: PieceColor,
+                                                      turn: ChessColor,
                                                       eval_func: EvaluationFunction<T>,
                                                       board_history: &Vec<T>,
                                                       constants: &Constants,
@@ -137,11 +133,11 @@ fn minimax_move_helper<T: ChessBoardContract + Clone>(board: &T,
                                                       beta: i32,
                                                       alpha_beta_pruning: bool) -> Result<i32, ChessError> {
     
-    let maximizing_player = turn == PieceColor::White;
-    let possible_moves = board.generate_moves(prev_board, turn, constants)?;
+    let maximizing_player = turn == ChessColor::White;
+    let possible_moves = board.generate_moves(turn, constants)?;
     
     if depth == 0 || possible_moves.len() == 0 {
-        return Ok(eval_func(board, prev_board, board_history, depth, constants)?);
+        return Ok(eval_func(board, board_history, depth, constants)?);
     }
 
     let mut ret_value = match maximizing_player {
@@ -159,7 +155,6 @@ fn minimax_move_helper<T: ChessBoardContract + Clone>(board: &T,
 
         let eval = minimax_move_helper(
             &mov_board,
-            Some(board),
             turn.opposite_color(),
             eval_func,
             &new_board_history,

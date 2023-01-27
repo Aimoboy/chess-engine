@@ -16,7 +16,7 @@ use crate::board_types::normalboard::{
 };
 
 use crate::enums::{
-    piece_color::PieceColor,
+    chess_color::ChessColor,
     end_type::EndType,
     piece_num::PieceNum,
     piece_type::PieceType
@@ -596,10 +596,10 @@ pub fn print_bitboard(num: u64) {
     }
 }
 
-fn get_full_color_board(board: &BitBoard, color: PieceColor) -> u64 {
+fn get_full_color_board(board: &BitBoard, color: ChessColor) -> u64 {
     let mut possible_moves: u64 = 0;
     match color {
-        PieceColor::White => {
+        ChessColor::White => {
             possible_moves |= board[PieceNum::WhitePawn as usize];
             possible_moves |= board[PieceNum::WhiteRook as usize];
             possible_moves |= board[PieceNum::WhiteKnight as usize];
@@ -607,7 +607,7 @@ fn get_full_color_board(board: &BitBoard, color: PieceColor) -> u64 {
             possible_moves |= board[PieceNum::WhiteQueen as usize];
             possible_moves |= board[PieceNum::WhiteKing as usize];
         },
-        PieceColor::Black => {
+        ChessColor::Black => {
             possible_moves |= board[PieceNum::BlackPawn as usize];
             possible_moves |= board[PieceNum::BlackRook as usize];
             possible_moves |= board[PieceNum::BlackKnight as usize];
@@ -620,16 +620,16 @@ fn get_full_color_board(board: &BitBoard, color: PieceColor) -> u64 {
 }
 
 fn get_occupied_board(board: &BitBoard) -> u64 {
-    get_full_color_board(board, PieceColor::White) | get_full_color_board(board, PieceColor::Black)
+    get_full_color_board(board, ChessColor::White) | get_full_color_board(board, ChessColor::Black)
 }
 
-pub fn get_reach_board(board: &BitBoard, color: PieceColor, constants: &Constants) -> u64 {
+pub fn get_reach_board(board: &BitBoard, color: ChessColor, constants: &Constants) -> u64 {
     let occupied_board = get_occupied_board(board);
 
     let mut b = 0;
 
     match color {
-        PieceColor::White => {
+        ChessColor::White => {
             for i in 0..64 {
                 let num = 1 << i;
                 let rows_and_columns = occupied_board & constants.row_and_column_mask[i];
@@ -651,7 +651,7 @@ pub fn get_reach_board(board: &BitBoard, color: PieceColor, constants: &Constant
                 }
             }
         },
-        PieceColor::Black => {
+        ChessColor::Black => {
             for i in 0..64 {
                 let num = 1 << i;
                 let rows_and_columns = occupied_board & constants.row_and_column_mask[i];
@@ -678,21 +678,21 @@ pub fn get_reach_board(board: &BitBoard, color: PieceColor, constants: &Constant
     b
 }
 
-fn is_in_check(board: &BitBoard, color: PieceColor, constants: &Constants) -> bool {
+fn is_in_check(board: &BitBoard, color: ChessColor, constants: &Constants) -> bool {
     let opposite_reach_board = get_reach_board(&board, color.opposite_color(), constants);
     match color {
-        PieceColor::White => {
+        ChessColor::White => {
             let king_num = board[PieceNum::WhiteKing as usize];
             opposite_reach_board & king_num == king_num
         },
-        PieceColor::Black => {
+        ChessColor::Black => {
             let king_num = board[PieceNum::BlackKing as usize];
             opposite_reach_board & king_num == king_num
         }
     }
 }
 
-pub fn generate_possible_moves(board: &BitBoard, prev_board: Option<&BitBoard>, color: PieceColor, constants: &Constants) -> Vec<BitBoardMove> {
+pub fn generate_possible_moves(board: &BitBoard, color: ChessColor, constants: &Constants) -> Vec<BitBoardMove> {
     let mut possible_moves = Vec::new();
 
     let opposite_color = color.opposite_color();
@@ -703,7 +703,7 @@ pub fn generate_possible_moves(board: &BitBoard, prev_board: Option<&BitBoard>, 
     let opposite_reach_board = get_reach_board(&board, opposite_color, constants);
 
     match color {
-        PieceColor::White => {
+        ChessColor::White => {
             // Pawns
             let mut tmp = board[PieceNum::WhitePawn as usize];
             while tmp != 0 {
@@ -890,7 +890,7 @@ pub fn generate_possible_moves(board: &BitBoard, prev_board: Option<&BitBoard>, 
                 tmp -= 1 << i;
             }
         },
-        PieceColor::Black => {
+        ChessColor::Black => {
             // Pawns
             let mut tmp = board[PieceNum::BlackPawn as usize];
             while tmp != 0 {
@@ -1094,7 +1094,7 @@ pub fn generate_possible_moves(board: &BitBoard, prev_board: Option<&BitBoard>, 
 
 fn piece_to_char(piece: &ChessPiece) -> char {
     match piece.color {
-        PieceColor::White => match piece.typ {
+        ChessColor::White => match piece.typ {
                                 PieceType::Pawn => 'p',
                                 PieceType::Rook => 'r',
                                 PieceType::Knight => 'n',
@@ -1102,7 +1102,7 @@ fn piece_to_char(piece: &ChessPiece) -> char {
                                 PieceType::Queen => 'q',
                                 PieceType::King => 'k'
                             }
-        PieceColor::Black => match piece.typ {
+        ChessColor::Black => match piece.typ {
                                 PieceType::Pawn => 'P',
                                 PieceType::Rook => 'R',
                                 PieceType::Knight => 'N',
@@ -1228,7 +1228,7 @@ pub fn board_to_bitboard(board: &NormalBoard) -> BitBoard{
         for j in 0..8 {
             if let Ok(Some(piece)) = board.get_piece(i, j) {
                 match piece.color {
-                    PieceColor::White => {
+                    ChessColor::White => {
                         match piece.typ {
                             PieceType::Pawn => {
                                 res[0] += 1 << pos_to_num(i as u64, j as u64);
@@ -1250,7 +1250,7 @@ pub fn board_to_bitboard(board: &NormalBoard) -> BitBoard{
                             }
                         }
                     },
-                    PieceColor::Black => {
+                    ChessColor::Black => {
                         match piece.typ {
                             PieceType::Pawn => {
                                 res[6] += 1 << pos_to_num(i as u64, j as u64);
@@ -1280,16 +1280,16 @@ pub fn board_to_bitboard(board: &NormalBoard) -> BitBoard{
     res
 }
 
-pub fn bitboard_check_game_end(bb: &BitBoard, prev_board: Option<&BitBoard>, turn: PieceColor, constants: &Constants) -> EndType {
+pub fn bitboard_check_game_end(bb: &BitBoard, turn: ChessColor, constants: &Constants) -> EndType {
     let opponent_color = turn.opposite_color();
-    let possible_moves = generate_possible_moves(bb, prev_board, turn, constants);
+    let possible_moves = generate_possible_moves(bb, turn, constants);
 
     if possible_moves.len() == 0 {
         let opponent_reach = get_reach_board(&bb, opponent_color, constants);
 
         let checkmate = match turn {
-            PieceColor::White => opponent_reach & bb[5] == bb[5],
-            PieceColor::Black => opponent_reach & bb[11] == bb[11]
+            ChessColor::White => opponent_reach & bb[5] == bb[5],
+            ChessColor::Black => opponent_reach & bb[11] == bb[11]
         };
 
         if checkmate {
@@ -1303,7 +1303,7 @@ pub fn bitboard_check_game_end(bb: &BitBoard, prev_board: Option<&BitBoard>, tur
 }
 
 impl ChessBoardContract for BitBoard {
-    fn generate_moves(&self, prev_board: Option<&BitBoard>, turn: PieceColor, constants: &Constants) -> Result<Vec<(String, BitBoard)>, ChessError> {
+    fn generate_moves(&self, turn: ChessColor, constants: &Constants) -> Result<Vec<(String, BitBoard)>, ChessError> {
         let mut possible_moves = Vec::new();
 
         let board = self;
@@ -1315,7 +1315,7 @@ impl ChessBoardContract for BitBoard {
         let opposite_reach_board = get_reach_board(board, opposite_color, constants);
 
         match turn {
-            PieceColor::White => {
+            ChessColor::White => {
                 // Pawns
                 let mut tmp = board[PieceNum::WhitePawn as usize];
                 while tmp != 0 {
@@ -1502,7 +1502,7 @@ impl ChessBoardContract for BitBoard {
                     tmp -= 1 << i;
                 }
             },
-            PieceColor::Black => {
+            ChessColor::Black => {
                 // Pawns
                 let mut tmp = board[PieceNum::BlackPawn as usize];
                 while tmp != 0 {
@@ -1705,8 +1705,8 @@ impl ChessBoardContract for BitBoard {
         Ok(res)
     }
 
-    fn check_game_end(&self, prev_board: Option<&Self>, turn: PieceColor, constants: &Constants) -> Result<EndType, ChessError> {
-        Ok(bitboard_check_game_end(self, prev_board, turn, constants))
+    fn check_game_end(&self, turn: ChessColor, constants: &Constants) -> Result<EndType, ChessError> {
+        Ok(bitboard_check_game_end(self, turn, constants))
     }
 
     fn get_value_of_pieces(&self, piece_values: [i32; 6]) -> i32 {

@@ -1,7 +1,7 @@
 
 use crate::{board_types::{
     normalboard::{NormalBoard, ChessPiece}
-}, enums::{piece_color::PieceColor, piece_type::PieceType}};
+}, enums::{chess_color::ChessColor, piece_type::PieceType}};
 
 pub fn get_letter(letter: usize) -> char {
     match letter {
@@ -66,13 +66,13 @@ pub fn validate_move_string(move_str: &String) -> bool {
     true
 }
 
-pub fn parse_fen_to_normalboard(fen: &str) -> (NormalBoard, PieceColor) {
+pub fn parse_fen_to_normalboard(fen: &str) -> (NormalBoard, ChessColor) {
     let mut split = fen.split_whitespace();
 
     let board_string = split.nth(0).expect("FEN board part");
     let turn_string = split.nth(0).expect("FEN turn part");
     let castle_string = split.nth(0).expect("FEN castle part");
-    let en_passent_string = split.nth(0).expect("FEN en passent part");
+    let en_passant_string = split.nth(0).expect("FEN en passant part");
     let half_move_string = split.nth(0).expect("FEN half move part");
     let full_move_string = split.nth(0).expect("FEN full move part");
 
@@ -83,51 +83,51 @@ pub fn parse_fen_to_normalboard(fen: &str) -> (NormalBoard, PieceColor) {
     for character in board_string.chars() {
         match character {
             'P' => {
-                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Pawn, PieceColor::White)).as_ref()).expect("White pawn");
+                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Pawn, ChessColor::White)).as_ref()).expect("White pawn");
                 col += 1;
             },
             'R' => {
-                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Rook, PieceColor::White)).as_ref()).expect("White pawn");
+                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Rook, ChessColor::White)).as_ref()).expect("White pawn");
                 col += 1;
             },
             'N' => {
-                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Knight, PieceColor::White)).as_ref()).expect("White pawn");
+                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Knight, ChessColor::White)).as_ref()).expect("White pawn");
                 col += 1;
             },
             'B' => {
-                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Bishop, PieceColor::White)).as_ref()).expect("White pawn");
+                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Bishop, ChessColor::White)).as_ref()).expect("White pawn");
                 col += 1;
             },
             'Q' => {
-                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Queen, PieceColor::White)).as_ref()).expect("White pawn");
+                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Queen, ChessColor::White)).as_ref()).expect("White pawn");
                 col += 1;
             },
             'K' => {
-                board.set_piece(col, row, Some(ChessPiece::new(PieceType::King, PieceColor::White)).as_ref()).expect("White pawn");
+                board.set_piece(col, row, Some(ChessPiece::new(PieceType::King, ChessColor::White)).as_ref()).expect("White pawn");
                 col += 1;
             },
             'p' => {
-                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Pawn, PieceColor::Black)).as_ref()).expect("White pawn");
+                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Pawn, ChessColor::Black)).as_ref()).expect("White pawn");
                 col += 1;
             },
             'r' => {
-                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Rook, PieceColor::Black)).as_ref()).expect("White pawn");
+                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Rook, ChessColor::Black)).as_ref()).expect("White pawn");
                 col += 1;
             },
             'n' => {
-                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Knight, PieceColor::Black)).as_ref()).expect("White pawn");
+                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Knight, ChessColor::Black)).as_ref()).expect("White pawn");
                 col += 1;
             },
             'b' => {
-                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Bishop, PieceColor::Black)).as_ref()).expect("White pawn");
+                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Bishop, ChessColor::Black)).as_ref()).expect("White pawn");
                 col += 1;
             },
             'q' => {
-                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Queen, PieceColor::Black)).as_ref()).expect("White pawn");
+                board.set_piece(col, row, Some(ChessPiece::new(PieceType::Queen, ChessColor::Black)).as_ref()).expect("White pawn");
                 col += 1;
             },
             'k' => {
-                board.set_piece(col, row, Some(ChessPiece::new(PieceType::King, PieceColor::Black)).as_ref()).expect("White pawn");
+                board.set_piece(col, row, Some(ChessPiece::new(PieceType::King, ChessColor::Black)).as_ref()).expect("White pawn");
                 col += 1;
             },
             '/' => {
@@ -141,10 +141,10 @@ pub fn parse_fen_to_normalboard(fen: &str) -> (NormalBoard, PieceColor) {
         }
     }
 
-    if en_passent_string != "-" {
-        let mut en_passent_iter = en_passent_string.chars();
+    if en_passant_string != "-" {
+        let mut en_passant_iter = en_passant_string.chars();
 
-        let letter = match en_passent_iter.nth(0).expect("FEN en passent letter") {
+        let letter = match en_passant_iter.nth(0).expect("FEN en passant letter") {
             'a' => 0,
             'b' => 1,
             'c' => 2,
@@ -155,11 +155,11 @@ pub fn parse_fen_to_normalboard(fen: &str) -> (NormalBoard, PieceColor) {
             _ => 7,
         };
 
-        let number: i32 = en_passent_iter.nth(0).expect("FEN en passent number").to_digit(10).expect("FEN en passent number to digit") as i32;
+        let number: i32 = en_passant_iter.nth(0).expect("FEN en passant number").to_digit(10).expect("FEN en passant number to digit") as i32;
 
-        board.set_en_passent(Some((letter, number)));
+        board.set_en_passant(Some((letter, number)));
     } else {
-        board.set_en_passent(None);
+        board.set_en_passant(None);
     }
 
     board.set_half_moves(half_move_string.parse().expect("FEN half moves"));
@@ -171,14 +171,14 @@ pub fn parse_fen_to_normalboard(fen: &str) -> (NormalBoard, PieceColor) {
     board.set_black_right_castle(castle_string.contains("k"));
 
     let turn = match turn_string {
-        "w" => PieceColor::White,
-        _ => PieceColor::Black
+        "w" => ChessColor::White,
+        _ => ChessColor::Black
     };
 
     (board, turn)
 }
 
-pub fn normalboard_to_fen(board: &NormalBoard, turn: PieceColor) -> String {
+pub fn normalboard_to_fen(board: &NormalBoard, turn: ChessColor) -> String {
     let mut fen = String::new();
 
     let mut none_counter = 0;
@@ -202,7 +202,7 @@ pub fn normalboard_to_fen(board: &NormalBoard, turn: PieceColor) -> String {
                         PieceType::King => 'k',
                     };
 
-                    if piece.color == PieceColor::White {
+                    if piece.color == ChessColor::White {
                         piece_letter = piece_letter.to_ascii_uppercase();
                     }
 
@@ -226,10 +226,10 @@ pub fn normalboard_to_fen(board: &NormalBoard, turn: PieceColor) -> String {
     fen.push(' ');
 
     match turn {
-        PieceColor::White => {
+        ChessColor::White => {
             fen.push('w');
         },
-        PieceColor::Black => {
+        ChessColor::Black => {
             fen.push('b');
         }
     }
@@ -258,7 +258,7 @@ pub fn normalboard_to_fen(board: &NormalBoard, turn: PieceColor) -> String {
 
     fen.push(' ');
 
-    match board.get_en_passent() {
+    match board.get_en_passant() {
         None => {
             fen.push('-');
         },
@@ -274,7 +274,7 @@ pub fn normalboard_to_fen(board: &NormalBoard, turn: PieceColor) -> String {
                 _ => 'h',
             };
 
-            let num_char = char::from_digit(num as u32, 10).expect("Normalboard en passent num to char");
+            let num_char = char::from_digit(num as u32, 10).expect("Normalboard en passant num to char");
             fen.push(letter);
             fen.push(num_char);
         }

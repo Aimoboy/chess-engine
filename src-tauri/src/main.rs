@@ -16,7 +16,7 @@ mod board_types {
 }
 
 mod enums {
-  pub mod piece_color;
+  pub mod chess_color;
   pub mod end_type;
   pub mod chess_error;
   pub mod piece_num;
@@ -45,7 +45,7 @@ use crate::{
     normalboard::NormalBoard
   },
   enums::{
-    piece_color::PieceColor,
+    chess_color::ChessColor,
     chess_error::ChessError
   }
 };
@@ -61,10 +61,10 @@ use traits::{
   chess_board_contract::ChessBoardContract
 };
 
-pub type EvaluationFunction<T: ChessBoardContract> = fn(&T, Option<&T>, &Vec<T>, i32, &Constants) -> Result<i32, ChessError>;
+pub type EvaluationFunction<T: ChessBoardContract> = fn(&T, &Vec<T>, i32, &Constants) -> Result<i32, ChessError>;
 
 pub struct Player<T: 'static + ChessBoardContract> {
-    turn_function: Box<dyn Fn(&T, Option<&T>, &Vec<T>, PieceColor, &Player<T>, &Constants) -> Result<String, ChessError>>,
+    turn_function: Box<dyn Fn(&T, &Vec<T>, ChessColor, &Player<T>, &Constants) -> Result<String, ChessError>>,
     moves_ahead: i32
 }
 
@@ -79,8 +79,8 @@ impl<T: 'static + ChessBoardContract + Clone + Send + Sync> Player<T> {
     pub fn minimax_bot(moves_ahead: i32, eval_func: EvaluationFunction<T>, alpha_beta_pruning: bool, multi_threading: bool) -> Self {
         Self {
             turn_function: {
-                Box::new(move |board: &T, previous_board: Option<&T>, board_history: &Vec<T>, turn: PieceColor, player: &Player<T>, constants: &Constants| -> Result<String, ChessError> {
-                    minimax_move(board, previous_board, board_history, turn, player, eval_func, constants, alpha_beta_pruning, multi_threading)
+                Box::new(move |board: &T, board_history: &Vec<T>, turn: ChessColor, player: &Player<T>, constants: &Constants| -> Result<String, ChessError> {
+                    minimax_move(board, board_history, turn, player, eval_func, constants, alpha_beta_pruning, multi_threading)
                 })
             },
             moves_ahead: moves_ahead
@@ -103,7 +103,7 @@ fn fen_to_possible_moves(fen: String) -> Vec<(String, String)> {
   println!("{}", normalboard_to_fen(&normalboard, turn));
   println!("{}", normalboard.board_ascii(true));
 
-  normalboard.generate_possible_moves(None, turn)
+  normalboard.generate_possible_moves(turn)
   .expect("Test!")
   .into_iter()
   .map(|(mov, board)| (mov, normalboard_to_fen(&board, turn.opposite_color()))).collect()
