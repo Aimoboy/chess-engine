@@ -538,12 +538,28 @@ impl NormalBoard {
         let new_letter = letter as i32;
         let new_number = number as i32 + side_const;
         if let Ok(None) = self.get_piece(letter as i32, new_number) {
-            let mut new_board = self.clone();
-            new_board.move_piece(letter as i32, number as i32, new_letter, new_number)?;
-            new_board.set_en_passant(None);
+            // Handle Promotion
+            if piece.color == ChessColor::White && new_number == 7 || piece.color == ChessColor::Black && new_number == 0 {
+                let promotion_types = [PieceType::Rook, PieceType::Knight, PieceType::Bishop, PieceType::Queen];
 
-            let mov_str = format!("{}{} {}{}", get_letter(letter), get_number(number), get_letter(new_letter as usize), get_number(new_number as usize));
-            possible_moves.push((mov_str, new_board));
+                for promotion_type in promotion_types {
+                    let mut new_board = self.clone();
+                    new_board.delete_piece(letter as i32, number as i32)?;
+                    let piece = ChessPiece::new(promotion_type, piece.color);
+                    new_board.set_piece(new_letter, new_number, Some(piece).as_ref())?;
+                    new_board.set_en_passant(None);
+
+                    let mov_str = format!("{}{} {}{}", get_letter(letter), get_number(number), get_letter(new_letter as usize), get_number(new_number as usize));
+                    possible_moves.push((mov_str, new_board));
+                }
+            } else {
+                let mut new_board = self.clone();
+                new_board.move_piece(letter as i32, number as i32, new_letter, new_number)?;
+                new_board.set_en_passant(None);
+
+                let mov_str = format!("{}{} {}{}", get_letter(letter), get_number(number), get_letter(new_letter as usize), get_number(new_number as usize));
+                possible_moves.push((mov_str, new_board));
+            }
         }
 
         // Double step
@@ -622,26 +638,20 @@ impl NormalBoard {
                         new_board.move_piece(letter as i32, number as i32, new_letter, new_number)?;
                         new_board.set_en_passant(None);
 
-                        if letter == 0 {
-                            match piece.color {
-                                ChessColor::White => {
-                                    new_board.set_white_left_castle(false);
-                                },
-                                ChessColor::Black => {
-                                    new_board.set_black_left_castle(false);
-                                }
-                            }
+                        if letter == 0 && number == 0 && piece.color == ChessColor::White {
+                            new_board.set_white_left_castle(false);
                         }
 
-                        if letter == 7 {
-                            match piece.color {
-                                ChessColor::White => {
-                                    new_board.set_white_right_castle(false);
-                                },
-                                ChessColor::Black => {
-                                    new_board.set_black_right_castle(false);
-                                }
-                            }
+                        if letter == 7 && number == 0 && piece.color == ChessColor::White {
+                            new_board.set_white_right_castle(false);
+                        }
+
+                        if letter == 0 && number == 7 && piece.color == ChessColor::Black {
+                            new_board.set_black_left_castle(false);
+                        }
+
+                        if letter == 7 && number == 7 && piece.color == ChessColor::Black {
+                            new_board.set_black_right_castle(false);
                         }
 
                         let mov_str = format!("{}{} {}{}", get_letter(letter), get_number(number), get_letter(new_letter as usize), get_number(new_number as usize));
@@ -653,26 +663,20 @@ impl NormalBoard {
                             new_board.move_piece(letter as i32, number as i32, new_letter, new_number)?;
                             new_board.set_en_passant(None);
 
-                            if letter == 0 {
-                                match piece.color {
-                                    ChessColor::White => {
-                                        new_board.set_white_left_castle(false);
-                                    },
-                                    ChessColor::Black => {
-                                        new_board.set_black_left_castle(false);
-                                    }
-                                }
+                            if letter == 0 && number == 0 && piece.color == ChessColor::White {
+                                new_board.set_white_left_castle(false);
                             }
     
-                            if letter == 7 {
-                                match piece.color {
-                                    ChessColor::White => {
-                                        new_board.set_white_right_castle(false);
-                                    },
-                                    ChessColor::Black => {
-                                        new_board.set_black_right_castle(false);
-                                    }
-                                }
+                            if letter == 7 && number == 0 && piece.color == ChessColor::White {
+                                new_board.set_white_right_castle(false);
+                            }
+    
+                            if letter == 0 && number == 7 && piece.color == ChessColor::Black {
+                                new_board.set_black_left_castle(false);
+                            }
+    
+                            if letter == 7 && number == 7 && piece.color == ChessColor::Black {
+                                new_board.set_black_right_castle(false);
                             }
 
                             let mov_str = format!("{}{} {}{}", get_letter(letter), get_number(number), get_letter(new_letter as usize), get_number(new_number as usize));
