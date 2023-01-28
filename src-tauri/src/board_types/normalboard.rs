@@ -921,7 +921,7 @@ impl NormalBoard {
 
             if let Ok((letter, number)) = self.get_king_pos(turn) {
                 if reach_board[letter][number] {
-                    return Ok(EndType::Checkmate(turn.opposite_color()));
+                    return Ok(EndType::chess_color_to_win_type(turn.opposite_color()));
                 } else {
                     return Ok(EndType::Tie);
                 }

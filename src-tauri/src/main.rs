@@ -55,6 +55,8 @@ use crate::turn_functions::{
 };
 
 use board_types::bitboard::{Constants, BitBoard};
+use enums::end_type::EndType;
+use serde::Serialize;
 use turn_functions::minimax_move::minimax_move;
 
 use traits::{
@@ -90,7 +92,7 @@ impl<T: 'static + ChessBoardContract + Clone + Send + Sync> Player<T> {
 
 fn main() {
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![fen_to_possible_moves])
+    .invoke_handler(tauri::generate_handler![fen_to_possible_moves, get_start_board_state])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
@@ -107,4 +109,37 @@ fn fen_to_possible_moves(fen: String) -> Vec<(String, String)> {
   .expect("Test!")
   .into_iter()
   .map(|(mov, board)| (mov, normalboard_to_fen(&board, turn.opposite_color()))).collect()
+}
+
+#[tauri::command]
+fn get_start_board_state() -> BoardState {
+  BoardState::get_start()
+}
+
+#[derive(Serialize)]
+struct BoardState {
+  fen: String,
+  win_state: EndType,
+  moves: Vec<(String, String, EndType)>
+}
+
+impl BoardState {
+  pub fn get_start() -> BoardState {
+    let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    let (normalboard, turn) = parse_fen_to_normalboard(&fen);
+
+    let possible_moves: Vec<(String, String, EndType)> = normalboard.generate_possible_moves(turn)
+    .expect("Test!")
+    .into_iter()
+    .map(|(mov, board)| {
+      (mov, normalboard_to_fen(&board, turn.opposite_color()), board.check_for_game_end(turn.opposite_color()).expect("Board game end check"))
+    }).collect();
+
+
+    BoardState {
+      fen: fen.to_string(),
+      win_state: EndType::BlackWin,
+      moves: possible_moves
+    }
+  }
 }

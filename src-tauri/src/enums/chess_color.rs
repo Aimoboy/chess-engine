@@ -1,5 +1,7 @@
+use serde::Serialize;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+
+#[derive(Debug, PartialEq, Clone, Copy, Serialize)]
 pub enum ChessColor {
     White = 0,
     Black = 1

@@ -15,22 +15,15 @@ use crate::board_types::bitboard::{
 const PIECE_VALUES: [i32; 6] = [100, 500, 300, 300, 900, 0];
 
 pub fn board_piece_evaluation<T: ChessBoardContract>(board: &T, _: &Vec<T>, depth: i32, constants: &Constants) -> Result<i32, ChessError> {
-    match board.check_game_end(ChessColor::White, constants)? {
-        EndType::Checkmate(_) => {
-            return Ok(<i32>::min_value() / 2 + depth);
+    match board.check_game_end(ChessColor::White, constants)? { // Should not depend on the turn
+        EndType::WhiteWin => {
+            return Ok(<i32>::min_value() / 2 + depth)
+        },
+        EndType::BlackWin => {
+            return Ok(<i32>::max_value() / 2 - depth)
         },
         EndType::Tie => {
-            return Ok(0);
-        },
-        EndType::NoEnd => ()
-    }
-
-    match board.check_game_end(ChessColor::White, constants)? {
-        EndType::Checkmate(_) => {
-            return Ok(<i32>::max_value() / 2 - depth);
-        },
-        EndType::Tie => {
-            return Ok(0);
+            return Ok(0); // Should possibly be changed
         },
         EndType::NoEnd => ()
     }

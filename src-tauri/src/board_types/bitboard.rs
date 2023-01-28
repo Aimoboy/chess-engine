@@ -52,6 +52,19 @@ impl Constants {
             king_reach: generate_king_reach()
         }
     }
+
+    pub fn empty() -> Self {
+        Self {
+            start_board: [0; 12],
+            row_and_column_mask: [0; 64],
+            diagonal_mask: [0; 64],
+            pawn_reach: [[0; 64]; 2],
+            rook_reach: [0; 64].map(|_| FxHashMap::default()),
+            knight_reach: [0; 64],
+            bishop_reach: [0; 64].map(|_| FxHashMap::default()),
+            king_reach: [0; 64]
+        }
+    }
 }
 
 pub fn generate_all_possible_configurations(input_board: u64) -> Vec<u64> {
@@ -1288,12 +1301,12 @@ pub fn bitboard_check_game_end(bb: &BitBoard, turn: ChessColor, constants: &Cons
         let opponent_reach = get_reach_board(&bb, opponent_color, constants);
 
         let checkmate = match turn {
-            ChessColor::White => opponent_reach & bb[5] == bb[5],
-            ChessColor::Black => opponent_reach & bb[11] == bb[11]
+            ChessColor::White => (opponent_reach & bb[PieceNum::WhiteKing as usize]) == bb[PieceNum::WhiteKing as usize],
+            ChessColor::Black => (opponent_reach & bb[PieceNum::BlackKing as usize]) == bb[PieceNum::BlackKing as usize]
         };
 
         if checkmate {
-            return EndType::Checkmate(turn);
+            return EndType::chess_color_to_win_type(turn.opposite_color())
         } else {
             return EndType::Tie;
         }
