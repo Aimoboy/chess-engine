@@ -120,6 +120,7 @@ fn get_start_board_state() -> BoardState {
 struct BoardState {
   fen: String,
   win_state: EndType,
+  turn: ChessColor,
   moves: Vec<(String, String, EndType)>
 }
 
@@ -138,6 +139,7 @@ impl BoardState {
 
     BoardState {
       fen: fen.to_string(),
+      turn: turn,
       win_state: EndType::BlackWin,
       moves: possible_moves
     }
