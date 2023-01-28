@@ -92,23 +92,29 @@ impl<T: 'static + ChessBoardContract + Clone + Send + Sync> Player<T> {
 
 fn main() {
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![fen_to_possible_moves, get_start_board_state])
+    .invoke_handler(tauri::generate_handler![fen_to_board_state, get_start_board_state])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
 
 #[tauri::command]
-fn fen_to_possible_moves(fen: String) -> Vec<(String, String)> {
-  println!("{}", fen);
+fn fen_to_board_state(fen: String) -> BoardState {
   let (normalboard, turn) = parse_fen_to_normalboard(&fen);
 
-  println!("{}", normalboard_to_fen(&normalboard, turn));
-  println!("{}", normalboard.board_ascii(true));
-
-  normalboard.generate_possible_moves(turn)
-  .expect("Test!")
+  let win_state = normalboard.check_for_game_end(turn).expect("Check if game end");
+  let possible_moves = normalboard.generate_possible_moves(turn)
+  .expect("Generate possible moves!")
   .into_iter()
-  .map(|(mov, board)| (mov, normalboard_to_fen(&board, turn.opposite_color()))).collect()
+  .map(|(mov, board)| {
+    (mov, normalboard_to_fen(&board, turn.opposite_color()))
+  }).collect();
+
+  BoardState {
+    fen: fen,
+    turn: turn,
+    win_state: win_state,
+    moves: possible_moves
+  }
 }
 
 #[tauri::command]
@@ -121,7 +127,7 @@ struct BoardState {
   fen: String,
   win_state: EndType,
   turn: ChessColor,
-  moves: Vec<(String, String, EndType)>
+  moves: Vec<(String, String)>
 }
 
 impl BoardState {
@@ -129,18 +135,18 @@ impl BoardState {
     let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     let (normalboard, turn) = parse_fen_to_normalboard(&fen);
 
-    let possible_moves: Vec<(String, String, EndType)> = normalboard.generate_possible_moves(turn)
+    let possible_moves: Vec<(String, String)> = normalboard.generate_possible_moves(turn)
     .expect("Test!")
     .into_iter()
     .map(|(mov, board)| {
-      (mov, normalboard_to_fen(&board, turn.opposite_color()), board.check_for_game_end(turn.opposite_color()).expect("Board game end check"))
+      (mov, normalboard_to_fen(&board, turn.opposite_color()))
     }).collect();
 
 
     BoardState {
       fen: fen.to_string(),
       turn: turn,
-      win_state: EndType::BlackWin,
+      win_state: EndType::NoEnd,
       moves: possible_moves
     }
   }

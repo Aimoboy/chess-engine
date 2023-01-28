@@ -5,7 +5,9 @@ import { ChessColor } from "../enums/ChessColor";
 import { ChessType } from "../enums/ChessType";
 import { WinState } from "../enums/WinState";
 
-export function parseServiceBoardStateResponse(boardState: {fen: string, moves: [string, string, string][], turn: string, win_state: string}): BoardState {
+export type boardStateResponse = {fen: string, moves: [string, string][], turn: string, win_state: string};
+
+export function parseServiceBoardStateResponse(boardState: boardStateResponse): BoardState {
     const board = parseFenToBoard(boardState.fen);
     const possibleMoves = parseBoardStateMovesToPossibleMoves(boardState.moves);
     const turn = parseTurnState(boardState.turn);
@@ -101,20 +103,17 @@ function fenCharacterToChessPiece(fenCharacter: string): ChessPiece {
     return new ChessPiece(pieceType, pieceColor);
 }
 
-function parseBoardStateMovesToPossibleMoves(moves: [string, string, string][]): PossibleMove[][][] {
+function parseBoardStateMovesToPossibleMoves(moves: [string, string][]): PossibleMove[][][] {
     // First element is the move as a string, example: 'a2 a4'
     // Second element is the resulting fen string of making that move
-    // Third element is the resulting winState as a string of making that move
     let possibleMoves = emptyPossibleMoves();
 
     for (const element of moves) {
         const movString = element[0];
         const fenString = element[1];
-        const winStateString = element[2];
 
         const [xFrom, yFrom, xTo, yTo] = parseStringChessMove(movString);
-        const winStateAsEnum = parseWinState(winStateString);
-        const possibleMove = new PossibleMove(xTo, yTo, fenString, winStateAsEnum);
+        const possibleMove = new PossibleMove(xTo, yTo, fenString);
 
         possibleMoves[xFrom][yFrom].push(possibleMove);
     }

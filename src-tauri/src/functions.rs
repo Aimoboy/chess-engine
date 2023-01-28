@@ -274,7 +274,7 @@ pub fn normalboard_to_fen(board: &NormalBoard, turn: ChessColor) -> String {
                 _ => 'h',
             };
 
-            let num_char = char::from_digit(num as u32, 10).expect("Normalboard en passant num to char");
+            let num_char = char::from_digit(num as u32 + 1, 10).expect("Normalboard en passant num to char");
             fen.push(letter);
             fen.push(num_char);
         }

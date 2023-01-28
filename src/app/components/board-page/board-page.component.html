@@ -20,11 +20,11 @@
                  [ngStyle]="{'height': chessBoardCellSize + 'px'}">
                 <div *ngFor="let col of [1, 2, 3, 4, 5, 6, 7, 8]; let j = index"
                      [ngStyle]="{'width': chessBoardCellSize + 'px',
-                                 'background-color': getCellColor(j, i),
-                                 'background-image': 'url(' + chessTypeToImg(board[i][j]?.type, board[i][j]?.color) + ')',
+                                 'background-color': getCellColor(j, 7 - i),
+                                 'background-image': chessTypeToImg(boardState?.board[j][7 - i]?.type, boardState?.board[j][7 - i]?.color),
                                  'background-size': chessBoardCellSize + 'px ' + chessBoardCellSize + 'px',
-                                 'cursor': getCellCursor(j, i)}">
-                    <p style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; pointer-events: none !important" onselectstart="return false" unselectable="on">{{boardPosToChessPos(j, i)}}</p>
+                                 'cursor': getCellCursor(j, 7 - i)}">
+                    <p style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; pointer-events: none !important" onselectstart="return false" unselectable="on">{{boardPosToChessPos(j, 7 - i)}}</p>
                 </div>
             </div>
         </div>
