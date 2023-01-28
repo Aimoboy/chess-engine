@@ -124,7 +124,7 @@ export class BoardPageComponent implements OnInit {
         break;
     }
 
-    return `url(https://images.chesscomfiles.com/chess-themes/pieces/neo/150/${pieceString}.png)`
+    return `url(../../../assets/${pieceString}.png)`;
   }
 
   public getCellColor(x: number, y: number): string {
