@@ -1,7 +1,7 @@
 import { ChessColor } from "../enums/ChessColor";
 import { WinState } from "../enums/WinState";
 import { ChessPiece } from "./ChessPiece";
-import { PossibleMove } from "./Position";
+import { PossibleMove } from "./PossibleMove";
 
 export class BoardState {
     public board: (ChessPiece | null)[][];
