@@ -36,6 +36,8 @@ mod evaluation_functions {
   pub mod board_piece_evaluation;
 }
 
+use std::vec;
+
 use crate::{
   functions::{
     parse_fen_to_normalboard,
@@ -98,7 +100,8 @@ fn main() {
 }
 
 #[tauri::command]
-fn fen_to_board_state(fen: String) -> BoardState {
+fn fen_to_board_state(fen: String, mut history: Vec<String>) -> BoardState {
+  history.push(fen.clone());
   let (normalboard, turn) = parse_fen_to_normalboard(&fen);
 
   let win_state = normalboard.check_for_game_end(turn).expect("Check if game end");
@@ -113,7 +116,8 @@ fn fen_to_board_state(fen: String) -> BoardState {
     fen: fen,
     turn: turn,
     win_state: win_state,
-    moves: possible_moves
+    moves: possible_moves,
+    history: history
   }
 }
 
@@ -127,7 +131,8 @@ struct BoardState {
   fen: String,
   win_state: EndType,
   turn: ChessColor,
-  moves: Vec<(String, String)>
+  moves: Vec<(String, String)>,
+  history: Vec<String>
 }
 
 impl BoardState {
@@ -147,7 +152,8 @@ impl BoardState {
       fen: fen.to_string(),
       turn: turn,
       win_state: EndType::NoEnd,
-      moves: possible_moves
+      moves: possible_moves,
+      history: Vec::new()
     }
   }
 }

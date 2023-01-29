@@ -5,7 +5,7 @@ import { ChessColor } from "../enums/ChessColor";
 import { ChessType } from "../enums/ChessType";
 import { WinState } from "../enums/WinState";
 
-export type boardStateResponse = {fen: string, moves: [string, string][], turn: string, win_state: string};
+export type boardStateResponse = {fen: string, moves: [string, string][], turn: string, win_state: string, history: string[]};
 
 export function parseServiceBoardStateResponse(boardState: boardStateResponse): BoardState {
     const board = parseFenToBoard(boardState.fen);
@@ -13,7 +13,7 @@ export function parseServiceBoardStateResponse(boardState: boardStateResponse): 
     const turn = parseTurnState(boardState.turn);
     const winState = parseWinState(boardState.win_state);
 
-    return new BoardState(board, possibleMoves, turn, winState);
+    return new BoardState(board, possibleMoves, turn, winState, boardState.history);
 }
 
 function parseFenToBoard(fen: string): (ChessPiece | null)[][] {

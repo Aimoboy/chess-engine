@@ -86,8 +86,9 @@ export class BoardPageComponent implements OnInit {
         this.deselect();
         this.boardState!.turn = ChessColor.None;
 
-        invoke<boardStateResponse>('fen_to_board_state', {'fen': newFen}).then(state => {
+        invoke<boardStateResponse>('fen_to_board_state', {'fen': newFen, 'history': this.boardState!.history}).then(state => {
           this.boardState = parseServiceBoardStateResponse(state);
+          console.log(this.boardState);
         }, err => console.log(err));
 
         return;
