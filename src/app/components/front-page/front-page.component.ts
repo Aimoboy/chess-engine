@@ -12,13 +12,9 @@ export class FrontPageComponent {
   public constructor(private _matDialog: MatDialog) {}
 
   onAboutClick() {
-    let dialogRef = this._matDialog.open(AboutComponent, {
+    const dialogRef = this._matDialog.open(AboutComponent, {
       width: '400px',
       height: '400px'
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
     });
   }
 }

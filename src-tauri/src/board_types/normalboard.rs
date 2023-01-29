@@ -591,12 +591,28 @@ impl NormalBoard {
 
             if let Ok(Some(other_piece)) = self.get_piece(new_letter, new_number) {
                 if piece.color != other_piece.color {
-                    let mut new_board = self.clone();
-                    new_board.move_piece(letter as i32, number as i32, new_letter, new_number)?;
-                    new_board.set_en_passant(None);
+                    // Handle Promotion
+                    if piece.color == ChessColor::White && new_number == 7 || piece.color == ChessColor::Black && new_number == 0 {
+                        let promotion_types = [PieceType::Rook, PieceType::Knight, PieceType::Bishop, PieceType::Queen];
 
-                    let mov_str = format!("{}{} {}{}", get_letter(letter), get_number(number), get_letter(new_letter as usize), get_number(new_number as usize));
-                    possible_moves.push((mov_str, new_board));
+                        for promotion_type in promotion_types {
+                            let mut new_board = self.clone();
+                            new_board.delete_piece(letter as i32, number as i32)?;
+                            let piece = ChessPiece::new(promotion_type, piece.color);
+                            new_board.set_piece(new_letter, new_number, Some(piece).as_ref())?;
+                            new_board.set_en_passant(None);
+
+                            let mov_str = format!("{}{} {}{}", get_letter(letter), get_number(number), get_letter(new_letter as usize), get_number(new_number as usize));
+                            possible_moves.push((mov_str, new_board));
+                        }
+                    } else {
+                        let mut new_board = self.clone();
+                        new_board.move_piece(letter as i32, number as i32, new_letter, new_number)?;
+                        new_board.set_en_passant(None);
+
+                        let mov_str = format!("{}{} {}{}", get_letter(letter), get_number(number), get_letter(new_letter as usize), get_number(new_number as usize));
+                        possible_moves.push((mov_str, new_board));
+                    }
                 }
             }
 

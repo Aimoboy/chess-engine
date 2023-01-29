@@ -5,7 +5,10 @@ import { ChessType } from 'src/app/enums/ChessType';
 import { invoke } from '@tauri-apps/api';
 import { BoardState } from 'src/app/classes/BoardState';
 import { boardStateResponse, parseServiceBoardStateResponse } from 'src/app/utils/parseUtils';
-import { isNullOrUndefined } from 'src/app/utils/generalUtils';
+import { getChessPiecePictureFromTypeAndColor, isNullOrUndefined } from 'src/app/utils/generalUtils';
+import { MatDialog } from '@angular/material/dialog';
+import { PromotionSelectorComponent } from './promotion-selector/promotion-selector.component';
+import { lastValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-board-page',
@@ -13,9 +16,9 @@ import { isNullOrUndefined } from 'src/app/utils/generalUtils';
   styleUrls: ['./board-page.component.scss']
 })
 export class BoardPageComponent implements OnInit {
-  private selectedCellColor = 'lightblue';
-  private possibleMoveColor = 'red';
-  private whiteCellColor = '#EEEED2';
+  private selectedCellColor = '#33bbff';
+  private possibleMoveColor = '#ff3333';
+  private whiteCellColor = '#eeeeD2';
   private coloredCellColor = '#769656';
   public chessBoardCellSize = 60;
 
@@ -28,7 +31,7 @@ export class BoardPageComponent implements OnInit {
   @ViewChild('chessBoard')
   public chessBoard: ElementRef | undefined;
 
-  constructor() {}
+  constructor(private _matDialog: MatDialog) {}
 
   ngOnInit(): void {
     invoke<boardStateResponse>('get_start_board_state').then(state => {
@@ -36,7 +39,7 @@ export class BoardPageComponent implements OnInit {
     }, (err) => console.log(err));
   }
 
-  public onBoardClick(e: MouseEvent) {
+  public async onBoardClick(e: MouseEvent) {
     if (isNullOrUndefined(this.boardState)) {
       return;
     }
@@ -55,14 +58,35 @@ export class BoardPageComponent implements OnInit {
       const selectedCellPossibleMoves = this.getPossibleMovesAtCoords(this.selectedX, this.selectedY, cellX, cellY);
 
       if (selectedCellPossibleMoves.length > 0) {
-        this.log.push(`${this.boardPosToChessPos(this.selectedX, this.selectedY)} to ${this.boardPosToChessPos(cellX, cellY)}`);
-        const newFEN = selectedCellPossibleMoves[0].fen;
-        this.log.push(newFEN);
+        let newFen: string;
+        if (selectedCellPossibleMoves.length > 1) {
+          const promotionFens = this.separatePromotionFens(selectedCellPossibleMoves);
 
+          const dialogRef = this._matDialog.open(PromotionSelectorComponent, {
+            width: '300px',
+            height: '150px',
+            disableClose: true,
+            data: {
+              chessBoardCellSize: this.chessBoardCellSize,
+              selectedCellColor: this.selectedCellColor,
+              coloredCellColor: this.coloredCellColor,
+              whiteCellColor: this.whiteCellColor,
+              turn: this.boardState!.turn
+            }
+          });
+
+          let dialogResult = await lastValueFrom(dialogRef.afterClosed());
+          newFen = promotionFens[dialogResult.data];
+        } else {
+          newFen = selectedCellPossibleMoves[0].fen;
+        }
+        console.log(newFen);
+
+        this.log.push(`${this.boardPosToChessPos(this.selectedX, this.selectedY)} to ${this.boardPosToChessPos(cellX, cellY)}`);
         this.deselect();
         this.boardState!.turn = ChessColor.None;
 
-        invoke<boardStateResponse>('fen_to_board_state', {'fen': newFEN}).then(state => {
+        invoke<boardStateResponse>('fen_to_board_state', {'fen': newFen}).then(state => {
           this.boardState = parseServiceBoardStateResponse(state);
         }, err => console.log(err));
 
@@ -87,44 +111,8 @@ export class BoardPageComponent implements OnInit {
     }
   }
 
-  public chessTypeToImg(type: ChessType, color: ChessColor): string {
-    if (isNullOrUndefined(type) || isNullOrUndefined(color)) {
-      return 'none';
-    }
-
-    let pieceString = '';
-
-    switch (color) {
-      case ChessColor.White:
-        pieceString += 'w';
-        break;
-      case ChessColor.Black:
-        pieceString += 'b';
-        break;
-    }
-
-    switch (type) {
-      case ChessType.Pawn:
-        pieceString += 'p';
-        break;
-      case ChessType.Rook:
-        pieceString += 'r';
-        break;
-      case ChessType.Knight:
-        pieceString += 'n';
-        break;
-      case ChessType.Bishop:
-        pieceString += 'b';
-        break;
-      case ChessType.Queen:
-        pieceString += 'q';
-        break;
-      case ChessType.King:
-        pieceString += 'k';
-        break;
-    }
-
-    return `url(../../../assets/${pieceString}.png)`;
+  public chessPieceToImg(type: ChessType, color: ChessColor): string {
+    return getChessPiecePictureFromTypeAndColor(type, color);
   }
 
   public getCellColor(x: number, y: number): string {
@@ -219,5 +207,48 @@ export class BoardPageComponent implements OnInit {
     }
 
     return this.boardState!.possibleMoves[x][y].length > 0;
+  }
+
+  private separatePromotionFens(moves: PossibleMove[]): [string, string, string, string] {
+    if (moves.length !== 4) {
+      throw new Error('Invalid amount of moves for promotion, expected 4 but got \'' + moves.length + '\'');
+    }
+
+    return [this.findPromotionFenForPieceType(moves, ChessType.Rook),
+            this.findPromotionFenForPieceType(moves, ChessType.Knight),
+            this.findPromotionFenForPieceType(moves, ChessType.Bishop),
+            this.findPromotionFenForPieceType(moves, ChessType.Queen)];
+  }
+
+  private findPromotionFenForPieceType(moves: PossibleMove[], pieceType: ChessType): string {
+    let pieceChar: string;
+    switch (pieceType) {
+      case ChessType.Rook:
+        pieceChar = 'r';
+        break;
+      case ChessType.Knight:
+        pieceChar = 'n';
+        break;
+      case ChessType.Bishop:
+        pieceChar = 'b';
+        break;
+      case ChessType.Queen:
+        pieceChar = 'q';
+        break;
+      default:
+        const validPromotionTypes = [ChessType.Rook, ChessType.Knight, ChessType.Bishop, ChessType.Queen];
+        if (!validPromotionTypes.includes(pieceType)) {
+          throw new Error('Invalid promotion type, expected one of \'' + validPromotionTypes + '\' but got \'' + pieceType + '\'');
+        }
+    }
+
+    const promotionFen = moves.map(mov => {
+      const count = mov.fen.split(' ')[0].toLowerCase().split(pieceChar).length - 1
+      return {fen: mov.fen, count: count};
+    }).sort((item1, item2) => {
+      return item2.count - item1.count;
+    })[0].fen;
+
+    return promotionFen;
   }
 }

@@ -155,7 +155,7 @@ pub fn parse_fen_to_normalboard(fen: &str) -> (NormalBoard, ChessColor) {
             _ => 7,
         };
 
-        let number: i32 = en_passant_iter.nth(0).expect("FEN en passant number").to_digit(10).expect("FEN en passant number to digit") as i32;
+        let number: i32 = en_passant_iter.nth(0).expect("FEN en passant number").to_digit(10).expect("FEN en passant number to digit") as i32 - 1;
 
         board.set_en_passant(Some((letter, number)));
     } else {

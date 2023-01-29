@@ -1,0 +1,18 @@
+
+<div class="expand d-flex align-items-center justify-content-center flex-column">
+    <!-- Pieces -->
+    <div class="flex-2 d-flex align-items-center justify-content-center">
+        <div *ngFor="let type of promotionChessTypes; let i = index" (click)="onPieceClick(i)"
+             [ngStyle]="{'height': dialogData.chessBoardCellSize + 'px',
+                         'width': dialogData.chessBoardCellSize + 'px',
+                         'background-color': getCellColor(i),
+                         'background-image': chessPieceToImg(type, dialogData.turn),
+                         'background-size': dialogData.chessBoardCellSize + 'px ' + dialogData.chessBoardCellSize + 'px'}"></div>
+    </div>
+
+    <!-- Choose button -->
+    <div class="flex-1 d-flex justify-content-center align-items-center">
+        <button (click)="onButtonClicked()" color="primary" style="width: 100px" mat-raised-button>Choose</button>
+    </div>
+</div>
+<!-- [disabled]="isButtonDisabled()" -->

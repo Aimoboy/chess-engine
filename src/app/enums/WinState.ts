@@ -1,7 +1,7 @@
 
 export enum WinState {
     NoEnd = 0,
-    Tie = 2,
-    WhiteWin = 3,
-    BlackWin = 4
+    Tie = 1,
+    WhiteWin = 2,
+    BlackWin = 3
 }

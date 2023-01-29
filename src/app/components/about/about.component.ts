@@ -10,7 +10,7 @@ export class AboutComponent {
 
   constructor(private _dialogRef: MatDialogRef<AboutComponent>) { }
 
-  onCloseClick() {
+  public onCloseClick() {
     this._dialogRef.close();
   }
 

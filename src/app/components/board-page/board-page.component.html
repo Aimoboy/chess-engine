@@ -14,14 +14,14 @@
     <div class="d-flex justify-content-center align-items-center flex-3">
 
         <!-- Board -->
-        <div #chessBoard (click)="onBoardClick($event)" class="bg-1" [ngStyle]="{'height': chessBoardCellSize * 8 + 'px', 'width': chessBoardCellSize * 8 + 'px'}">
+        <div #chessBoard (click)="onBoardClick($event)" [ngStyle]="{'height': chessBoardCellSize * 8 + 'px', 'width': chessBoardCellSize * 8 + 'px'}">
             <div *ngFor="let row of [1, 2, 3, 4, 5, 6, 7, 8]; let i = index"
                  class="expand d-flex flex-row"
                  [ngStyle]="{'height': chessBoardCellSize + 'px'}">
                 <div *ngFor="let col of [1, 2, 3, 4, 5, 6, 7, 8]; let j = index"
                      [ngStyle]="{'width': chessBoardCellSize + 'px',
                                  'background-color': getCellColor(j, 7 - i),
-                                 'background-image': chessTypeToImg(boardState?.board[j][7 - i]?.type, boardState?.board[j][7 - i]?.color),
+                                 'background-image': chessPieceToImg(boardState?.board[j][7 - i]?.type, boardState?.board[j][7 - i]?.color),
                                  'background-size': chessBoardCellSize + 'px ' + chessBoardCellSize + 'px',
                                  'cursor': getCellCursor(j, 7 - i)}">
                     <p style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; pointer-events: none !important" onselectstart="return false" unselectable="on">{{boardPosToChessPos(j, 7 - i)}}</p>
