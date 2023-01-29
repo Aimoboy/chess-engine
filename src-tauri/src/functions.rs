@@ -69,12 +69,12 @@ pub fn validate_move_string(move_str: &String) -> bool {
 pub fn parse_fen_to_normalboard(fen: &str) -> (NormalBoard, ChessColor) {
     let mut split = fen.split_whitespace();
 
-    let board_string = split.nth(0).expect("FEN board part");
-    let turn_string = split.nth(0).expect("FEN turn part");
-    let castle_string = split.nth(0).expect("FEN castle part");
-    let en_passant_string = split.nth(0).expect("FEN en passant part");
-    let half_move_string = split.nth(0).expect("FEN half move part");
-    let full_move_string = split.nth(0).expect("FEN full move part");
+    let board_string = split.next().expect("FEN board part");
+    let turn_string = split.next().expect("FEN turn part");
+    let castle_string = split.next().expect("FEN castle part");
+    let en_passant_string = split.next().expect("FEN en passant part");
+    let half_move_string = split.next().expect("FEN half move part");
+    let full_move_string = split.next().expect("FEN full move part");
 
     let mut board = NormalBoard::new_empty_board();
 

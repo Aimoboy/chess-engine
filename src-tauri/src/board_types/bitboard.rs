@@ -912,14 +912,16 @@ pub fn generate_possible_moves(board: &BitBoard, color: ChessColor, constants: &
                 if occupied_board & 1 << (i - 8) == 0 {
                     let mut new_board = board.clone();
                     new_board[PieceNum::BlackPawn as usize] -= 1 << i;
-                    if 0 <= i - 8 && i - 8 < 8 {
+                    // if 0 <= i - 8 && i - 8 < 8 {
+                    if i - 8 < 8 {
                         new_board[PieceNum::BlackQueen as usize] += 1 << (i - 8);
                     } else {
                         new_board[PieceNum::BlackPawn as usize] += 1 << (i - 8);
                     }
                     possible_moves.push(((num_to_pos(i as u64), num_to_pos(i as u64 - 8)), new_board));
 
-                    if 48 <= i && i < 56 && occupied_board & 1 << (i - 16) == 0 {
+                    // if 48 <= i && i < 56 && occupied_board & 1 << (i - 16) == 0 {
+                    if (48..56).contains(&i) && occupied_board & 1 << (i - 16) == 0 {
                         let mut new_board = board.clone();
                         new_board[PieceNum::BlackPawn as usize] -= 1 << i;
                         new_board[PieceNum::BlackPawn as usize] += 1 << (i - 16);
@@ -1524,7 +1526,8 @@ impl ChessBoardContract for BitBoard {
                     if occupied_board & 1 << (i - 8) == 0 {
                         let mut new_board = board.clone();
                         new_board[PieceNum::BlackPawn as usize] -= 1 << i;
-                        if 0 <= i - 8 && i - 8 < 8 {
+                        // if 0 <= i - 8 && i - 8 < 8 {
+                        if i - 8 < 8 {
                             new_board[PieceNum::BlackQueen as usize] += 1 << (i - 8);
                         } else {
                             new_board[PieceNum::BlackPawn as usize] += 1 << (i - 8);

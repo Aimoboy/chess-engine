@@ -1,5 +1,7 @@
+use serde::Serialize;
 
-#[derive(PartialEq, Clone, Copy, Debug)]
+
+#[derive(PartialEq, Clone, Copy, Debug, Serialize)]
 pub enum ChessError {
     InvalidMove = 0,
     NoMovesFound = 1,

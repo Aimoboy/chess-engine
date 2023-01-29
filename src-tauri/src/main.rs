@@ -100,29 +100,31 @@ fn main() {
 }
 
 #[tauri::command]
-fn fen_to_board_state(fen: String, mut history: Vec<String>) -> BoardState {
+fn fen_to_board_state(fen: String, mut history: Vec<String>) -> Result<BoardState, ChessError> {
   history.push(fen.clone());
-  let (normalboard, turn) = parse_fen_to_normalboard(&fen);
+  generate_board_state_from_fen(&fen, history)
 
-  let win_state = normalboard.check_for_game_end(turn).expect("Check if game end");
-  let possible_moves = normalboard.generate_possible_moves(turn)
-  .expect("Generate possible moves!")
-  .into_iter()
-  .map(|(mov, board)| {
-    (mov, normalboard_to_fen(&board, turn.opposite_color()))
-  }).collect();
+  // let (normalboard, turn) = parse_fen_to_normalboard(&fen);
 
-  BoardState {
-    fen: fen,
-    turn: turn,
-    win_state: win_state,
-    moves: possible_moves,
-    history: history
-  }
+  // let win_state = normalboard.check_for_game_end(turn).expect("Check if game end");
+  // let possible_moves = normalboard.generate_possible_moves(turn)
+  // .expect("Generate possible moves!")
+  // .into_iter()
+  // .map(|(mov, board)| {
+  //   (mov, normalboard_to_fen(&board, turn.opposite_color()))
+  // }).collect();
+
+  // BoardState {
+  //   fen: fen,
+  //   turn: turn,
+  //   win_state: win_state,
+  //   moves: possible_moves,
+  //   history: history
+  // }
 }
 
 #[tauri::command]
-fn get_start_board_state() -> BoardState {
+fn get_start_board_state() -> Result<BoardState, ChessError> {
   BoardState::get_start()
 }
 
@@ -136,24 +138,47 @@ struct BoardState {
 }
 
 impl BoardState {
-  pub fn get_start() -> BoardState {
+  pub fn get_start() -> Result<BoardState, ChessError> {
     let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    let (normalboard, turn) = parse_fen_to_normalboard(&fen);
 
-    let possible_moves: Vec<(String, String)> = normalboard.generate_possible_moves(turn)
-    .expect("Test!")
-    .into_iter()
-    .map(|(mov, board)| {
-      (mov, normalboard_to_fen(&board, turn.opposite_color()))
-    }).collect();
+    generate_board_state_from_fen(fen, Vec::new())
 
 
-    BoardState {
-      fen: fen.to_string(),
-      turn: turn,
-      win_state: EndType::NoEnd,
-      moves: possible_moves,
-      history: Vec::new()
-    }
+    // let (normalboard, turn) = parse_fen_to_normalboard(&fen);
+
+    // let possible_moves: Vec<(String, String)> = normalboard.generate_possible_moves(turn)
+    // .expect("Test!")
+    // .into_iter()
+    // .map(|(mov, board)| {
+    //   (mov, normalboard_to_fen(&board, turn.opposite_color()))
+    // }).collect();
+
+
+    // BoardState {
+    //   fen: fen.to_string(),
+    //   turn: turn,
+    //   win_state: EndType::NoEnd,
+    //   moves: possible_moves,
+    //   history: Vec::new()
+    // }
   }
+}
+
+fn generate_board_state_from_fen(fen: &str, history: Vec<String>) -> Result<BoardState, ChessError> {
+  let (normalboard, turn) = parse_fen_to_normalboard(fen);
+
+  let win_state = normalboard.check_for_game_end(turn)?;
+  let moves = normalboard.generate_possible_moves(turn)?
+  .into_iter()
+  .map(|(mov, board)| {
+    (mov, normalboard_to_fen(&board, turn.opposite_color()))
+  }).collect();
+
+  Ok(BoardState {
+    fen: fen.to_owned(),
+    turn,
+    win_state,
+    moves,
+    history
+  })
 }
