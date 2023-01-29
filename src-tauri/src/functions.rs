@@ -170,6 +170,16 @@ pub fn parse_fen_to_normalboard(fen: &str) -> (NormalBoard, ChessColor) {
     board.set_black_left_castle(castle_string.contains("q"));
     board.set_black_right_castle(castle_string.contains("k"));
 
+    for i in 0..8 {
+        for j in 0..8 {
+            if let Ok(Some(piece)) = board.get_piece(i, j) {
+                if piece.typ == PieceType::King {
+                    board.set_king_pos(piece.color, (i as usize, j as usize))
+                }
+            }
+        }
+    }
+
     let turn = match turn_string {
         "w" => ChessColor::White,
         _ => ChessColor::Black

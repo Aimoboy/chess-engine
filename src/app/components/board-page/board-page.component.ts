@@ -88,7 +88,6 @@ export class BoardPageComponent implements OnInit {
 
         invoke<boardStateResponse>('fen_to_board_state', {'fen': newFen, 'history': this.boardState!.history}).then(state => {
           this.boardState = parseServiceBoardStateResponse(state);
-          console.log(this.boardState);
         }, err => console.log(err));
 
         return;
