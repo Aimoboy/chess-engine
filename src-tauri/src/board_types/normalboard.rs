@@ -563,6 +563,11 @@ impl NormalBoard {
 
                 for promotion_type in promotion_types {
                     let mut new_board = self.clone();
+
+                    if piece.color == ChessColor::Black {
+                        new_board.set_full_moves(new_board.get_full_moves() + 1);
+                    }
+
                     new_board.delete_piece(letter as i32, number as i32)?;
                     let piece = ChessPiece::new(promotion_type, piece.color);
                     new_board.set_piece(new_letter, new_number, Some(piece).as_ref())?;
@@ -574,6 +579,11 @@ impl NormalBoard {
                 }
             } else {
                 let mut new_board = self.clone();
+                
+                if piece.color == ChessColor::Black {
+                    new_board.set_full_moves(new_board.get_full_moves() + 1);
+                }
+
                 new_board.move_piece(letter as i32, number as i32, new_letter, new_number)?;
                 new_board.set_en_passant(None);
                 new_board.set_half_moves(0);
@@ -591,6 +601,11 @@ impl NormalBoard {
                 let new_number = number as i32 + side_const * 2;
                 if let Ok(None) = self.get_piece(letter as i32, new_number) {
                     let mut new_board = self.clone();
+
+                    if piece.color == ChessColor::Black {
+                        new_board.set_full_moves(new_board.get_full_moves() + 1);
+                    }
+
                     new_board.move_piece(letter as i32, number as i32, new_letter, new_number)?;
                     new_board.set_half_moves(0);
 
@@ -619,6 +634,11 @@ impl NormalBoard {
 
                         for promotion_type in promotion_types {
                             let mut new_board = self.clone();
+
+                            if piece.color == ChessColor::Black {
+                                new_board.set_full_moves(new_board.get_full_moves() + 1);
+                            }
+
                             new_board.delete_piece(letter as i32, number as i32)?;
                             let piece = ChessPiece::new(promotion_type, piece.color);
                             new_board.set_piece(new_letter, new_number, Some(piece).as_ref())?;
@@ -630,6 +650,11 @@ impl NormalBoard {
                         }
                     } else {
                         let mut new_board = self.clone();
+
+                        if piece.color == ChessColor::Black {
+                            new_board.set_full_moves(new_board.get_full_moves() + 1);
+                        }
+
                         new_board.move_piece(letter as i32, number as i32, new_letter, new_number)?;
                         new_board.set_en_passant(None);
                         new_board.set_half_moves(0);
@@ -644,6 +669,11 @@ impl NormalBoard {
             if let Some((en_passant_letter, en_passant_number)) = self.get_en_passant() {
                 if new_letter == en_passant_letter && new_number == en_passant_number {
                     let mut new_board = self.clone();
+
+                    if piece.color == ChessColor::Black {
+                        new_board.set_full_moves(new_board.get_full_moves() + 1);
+                    }
+
                     new_board.move_piece(letter as i32, number as i32, new_letter, new_number)?;
                     new_board.delete_piece(new_letter, new_number - side_const)?;
                     new_board.set_en_passant(None);
@@ -675,6 +705,11 @@ impl NormalBoard {
                 match self.get_piece(new_letter, new_number) {
                     Ok(None) => {
                         let mut new_board = self.clone();
+
+                        if piece.color == ChessColor::Black {
+                            new_board.set_full_moves(new_board.get_full_moves() + 1);
+                        }
+
                         new_board.move_piece(letter as i32, number as i32, new_letter, new_number)?;
                         new_board.set_en_passant(None);
                         new_board.set_half_moves(self.get_half_moves() + 1);
@@ -701,6 +736,11 @@ impl NormalBoard {
                     Ok(Some(other_piece)) => {
                         if piece.color != other_piece.color {
                             let mut new_board = self.clone();
+
+                            if piece.color == ChessColor::Black {
+                                new_board.set_full_moves(new_board.get_full_moves() + 1);
+                            }
+
                             new_board.move_piece(letter as i32, number as i32, new_letter, new_number)?;
                             new_board.set_en_passant(None);
                             new_board.set_half_moves(0);
@@ -752,6 +792,11 @@ impl NormalBoard {
             match self.get_piece(new_letter, new_number) {
                 Ok(None) => {
                     let mut new_board = self.clone();
+
+                    if piece.color == ChessColor::Black {
+                        new_board.set_full_moves(new_board.get_full_moves() + 1);
+                    }
+
                     new_board.move_piece(letter as i32, number as i32, new_letter, new_number)?;
                     new_board.set_en_passant(None);
                     new_board.set_half_moves(self.get_half_moves() + 1);
@@ -762,6 +807,11 @@ impl NormalBoard {
                 Ok(Some(other_piece)) => {
                     if piece.color != other_piece.color {
                         let mut new_board = self.clone();
+
+                        if piece.color == ChessColor::Black {
+                            new_board.set_full_moves(new_board.get_full_moves() + 1);
+                        }
+
                         new_board.move_piece(letter as i32, number as i32, new_letter, new_number)?;
                         new_board.set_en_passant(None);
                         new_board.set_half_moves(0);
@@ -794,6 +844,11 @@ impl NormalBoard {
                 match self.get_piece(new_letter, new_number) {
                     Ok(None) => {
                         let mut new_board = self.clone();
+
+                        if piece.color == ChessColor::Black {
+                            new_board.set_full_moves(new_board.get_full_moves() + 1);
+                        }
+
                         new_board.move_piece(letter as i32, number as i32, new_letter, new_number)?;
                         new_board.set_en_passant(None);
                         new_board.set_half_moves(self.get_half_moves() + 1);
@@ -804,6 +859,11 @@ impl NormalBoard {
                     Ok(Some(other_piece)) => {
                         if piece.color != other_piece.color {
                             let mut new_board = self.clone();
+
+                            if piece.color == ChessColor::Black {
+                                new_board.set_full_moves(new_board.get_full_moves() + 1);
+                            }
+
                             new_board.move_piece(letter as i32, number as i32, new_letter, new_number)?;
                             new_board.set_en_passant(None);
                             new_board.set_half_moves(0);
@@ -858,6 +918,11 @@ impl NormalBoard {
 
             if generate_move {
                 let mut new_board = self.clone();
+
+                if piece.color == ChessColor::Black {
+                    new_board.set_full_moves(new_board.get_full_moves() + 1);
+                }
+
                 new_board.move_piece(letter as i32, number as i32, new_letter, new_number)?;
                 new_board.set_en_passant(None);
                 new_board.set_king_pos(piece.color, (new_letter as usize, new_number as usize));
@@ -902,6 +967,11 @@ impl NormalBoard {
                     if let Ok(None) = self.get_piece(3, number as i32) {
                         if !opponent_reach_board[2][number] && !opponent_reach_board[3][number] && !opponent_reach_board[4][number] {
                             let mut new_board = self.clone();
+
+                            if piece.color == ChessColor::Black {
+                                new_board.set_full_moves(new_board.get_full_moves() + 1);
+                            }
+
                             new_board.move_piece(letter as i32, number as i32, 2, number as i32)?;
                             new_board.move_piece(0, number as i32, 3, number as i32)?;
                             new_board.set_en_passant(None);
@@ -933,6 +1003,11 @@ impl NormalBoard {
                 if let Ok(None) = self.get_piece(6, number as i32) {
                         if !opponent_reach_board[4][number] && !opponent_reach_board[5][number] && !opponent_reach_board[6][number] {
                             let mut new_board = self.clone();
+
+                            if piece.color == ChessColor::Black {
+                                new_board.set_full_moves(new_board.get_full_moves() + 1);
+                            }
+                            
                             new_board.move_piece(letter as i32, number as i32, 6, number as i32)?;
                             new_board.move_piece(7, number as i32, 5, number as i32)?;
                             new_board.set_en_passant(None);
