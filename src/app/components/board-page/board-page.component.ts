@@ -9,6 +9,7 @@ import { getChessPiecePictureFromTypeAndColor, isNullOrUndefined } from 'src/app
 import { MatDialog } from '@angular/material/dialog';
 import { PromotionSelectorComponent } from './promotion-selector/promotion-selector.component';
 import { lastValueFrom } from 'rxjs';
+import { WinState } from 'src/app/enums/WinState';
 
 @Component({
   selector: 'app-board-page',
@@ -80,13 +81,14 @@ export class BoardPageComponent implements OnInit {
         } else {
           newFen = selectedCellPossibleMoves[0].fen;
         }
-        console.log(newFen);
 
         this.log.push(`${this.boardPosToChessPos(this.selectedX, this.selectedY)} to ${this.boardPosToChessPos(cellX, cellY)}`);
         this.deselect();
         this.boardState!.turn = ChessColor.None;
+        
+        const historyArg = this.boardState!.history.concat([newFen]);
 
-        invoke<boardStateResponse>('fen_to_board_state', {'fen': newFen, 'history': this.boardState!.history}).then(state => {
+        invoke<boardStateResponse>('fen_to_board_state', {'history': historyArg}).then(state => {
           this.boardState = parseServiceBoardStateResponse(state);
         }, err => console.log(err));
 
@@ -133,15 +135,7 @@ export class BoardPageComponent implements OnInit {
   }
 
   public getCellCursor(x: number, y: number): string {
-    if (isNullOrUndefined(this.boardState)) {
-      return 'default';
-    }
-
-    if (this.boardState!.board[x][y]?.color === this.boardState!.turn) {
-      return 'pointer';
-    }
-
-    if (this.selectedCellHasPossibleMoveForCoords(x, y)) {
+    if (this.cellSelectable(x, y)) {
       return 'pointer';
     }
 
@@ -159,7 +153,31 @@ export class BoardPageComponent implements OnInit {
     return this.selectedX !== -1 && this.selectedY !== -1;
   }
 
+  private cellSelectable(x: number, y: number): boolean {
+    if (isNullOrUndefined(this.boardState)) {
+      return false;
+    }
+
+    if (this.boardState!.winState !== WinState.NoEnd) {
+      return false;
+    }
+
+    if (this.boardState!.board[x][y]?.color === this.boardState!.turn) {
+      return true;
+    }
+
+    if (this.selectedCellHasPossibleMoveForCoords(x, y)) {
+      return true;
+    }
+
+    return false;
+  }
+
   private select(x: number, y: number) {
+    if (!this.cellSelectable(x, y)) {
+      return;
+    }
+
     this.selectedX = x;
     this.selectedY = y;
   }
@@ -199,14 +217,6 @@ export class BoardPageComponent implements OnInit {
     }
 
     return this.getPossibleMovesAtCoords(this.selectedX, this.selectedY, x, y).length > 0;
-  }
-
-  private cellHasAnyPossibleMoves(x: number, y: number): boolean {
-    if (isNullOrUndefined(this.boardState)) {
-      return false;
-    }
-
-    return this.boardState!.possibleMoves[x][y].length > 0;
   }
 
   private separatePromotionFens(moves: PossibleMove[]): [string, string, string, string] {

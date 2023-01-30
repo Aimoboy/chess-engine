@@ -21,6 +21,8 @@ tauri = { version = "1.2.0", features = [] }
 work-queue = "0.1.3"
 num_cpus = "1.15.0"
 rustc-hash = "1.1.0"
+sha1 = "0.10.5"
+xxhash-rust = { version = "0.8.6", features = ["xxh3"]}
 
 [features]
 # by default Tauri runs in production mode

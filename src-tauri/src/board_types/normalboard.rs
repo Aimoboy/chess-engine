@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
+
 use crate::enums::{
     chess_color::ChessColor,
     end_type::EndType,
@@ -21,7 +24,7 @@ use crate::board_types::bitboard::Constants;
 pub type Pos = (usize, usize);
 type ReachBoard = [[bool; 8]; 8];
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ChessPiece {
     pub typ: PieceType,
     pub color: ChessColor
@@ -131,6 +134,52 @@ pub struct NormalBoard {
     white_king_pos: Pos,
     black_king_pos: Pos
 }
+
+impl Hash for NormalBoard {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.board.hash(state);
+        self.white_left_castle.hash(state);
+        self.white_right_castle.hash(state);
+        self.black_left_castle.hash(state);
+        self.black_right_castle.hash(state);
+    }
+}
+
+impl PartialEq for NormalBoard {
+    fn eq(&self, other: &Self) -> bool {
+        for i in 0..8 {
+            for j in 0..8 {
+                let piece = if let Ok(val) = self.get_piece(i, j) {
+                    val
+                } else {
+                    return false;
+                };
+
+                let other_piece = if let Ok(val) = other.get_piece(i, j) {
+                    val
+                } else {
+                    return false;
+                };
+
+                if piece.is_some() && other_piece.is_none() || piece.is_none() && other_piece.is_some() {
+                    return false;
+                }
+
+                if let Some(piece) = piece {
+                    if let Some(other_piece) = other_piece {
+                        if piece.typ != other_piece.typ || piece.color != other_piece.color {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        self.white_left_castle == other.white_left_castle && self.white_right_castle == other.white_right_castle && self.black_left_castle == other.black_left_castle && self.black_right_castle == other.black_right_castle
+    }
+}
+
+impl Eq for NormalBoard { }
 
 impl NormalBoard {
     pub fn set_en_passant(&mut self, val: Option<(i32, i32)>) {
@@ -1055,8 +1104,8 @@ impl NormalBoard {
 
 
     // Check if the game has ended for the given player
-    pub fn check_for_game_end(&self, turn: ChessColor) -> Result<EndType, ChessError> {
-        if self.generate_possible_moves(turn)?.len() == 0 {
+    pub fn check_for_game_end(&self, turn: ChessColor, board_history_hashmap: &HashMap<NormalBoard, i32>) -> Result<EndType, ChessError> {
+        if self.generate_possible_moves(turn)?.is_empty() {
             let reach_board = self.generate_reachable_tiles_board(turn.opposite_color());
 
             let (letter, number) = self.get_king_pos(turn);
@@ -1067,23 +1116,38 @@ impl NormalBoard {
             }
         }
 
+        match self.check_repetition(board_history_hashmap) {
+            EndType::NoEnd => (),
+            other_res => return Ok(other_res)
+        }
+
+        match self.check_half_moves_end() {
+            EndType::NoEnd => (),
+            other_res => return Ok(other_res)
+        }
+
         Ok(EndType::NoEnd)
     }
 
-    pub fn check_repetition(&self, board_history: &Vec<NormalBoard>) -> EndType {
-        let mut count = 0;
-
-        for b in board_history {
-            if self.check_board_equality(b) {
-                count += 1;
-            }
+    fn check_repetition(&self, board_history_hashmap: &HashMap<NormalBoard, i32>) -> EndType {
+        match board_history_hashmap.get(self) {
+            Some(occurrences) => {
+                if *occurrences >= 3 {
+                    EndType::Tie
+                } else {
+                    EndType::NoEnd
+                }
+            },
+            None => EndType::NoEnd
         }
+    }
 
-        if count >= 3 {
-            return EndType::Tie;
+    fn check_half_moves_end(&self) -> EndType {
+        if self.get_half_moves() >= 100 {
+            EndType::Tie
+        } else {
+            EndType::NoEnd
         }
-
-        EndType::NoEnd
     }
 
     fn check_board_equality(&self, other: &NormalBoard) -> bool {
@@ -1115,7 +1179,7 @@ impl ChessBoardContract for NormalBoard {
     }
 
     fn check_game_end(&self, turn: ChessColor, _: &Constants) -> Result<EndType, ChessError> {
-        self.check_for_game_end(turn)
+        self.check_for_game_end(turn, &HashMap::new())
     }
 
     fn board_ascii(&self, use_unicode: bool) -> String {

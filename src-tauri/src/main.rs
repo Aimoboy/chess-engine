@@ -6,6 +6,8 @@
 extern crate work_queue;
 extern crate num_cpus;
 extern crate rustc_hash;
+extern crate sha1;
+extern crate xxhash_rust;
 
 
 mod functions;
@@ -36,7 +38,7 @@ mod evaluation_functions {
   pub mod board_piece_evaluation;
 }
 
-use std::vec;
+use std::{vec, hash::{Hash, Hasher}, collections::HashMap};
 
 use crate::{
   functions::{
@@ -60,6 +62,9 @@ use board_types::bitboard::{Constants, BitBoard};
 use enums::end_type::EndType;
 use serde::Serialize;
 use turn_functions::minimax_move::minimax_move;
+
+use sha1::{Sha1, Digest};
+use xxhash_rust::xxh3::xxh3_64;
 
 use traits::{
   chess_board_contract::ChessBoardContract
@@ -100,27 +105,8 @@ fn main() {
 }
 
 #[tauri::command]
-fn fen_to_board_state(fen: String, mut history: Vec<String>) -> Result<BoardState, ChessError> {
-  history.push(fen.clone());
-  generate_board_state_from_fen(&fen, history)
-
-  // let (normalboard, turn) = parse_fen_to_normalboard(&fen);
-
-  // let win_state = normalboard.check_for_game_end(turn).expect("Check if game end");
-  // let possible_moves = normalboard.generate_possible_moves(turn)
-  // .expect("Generate possible moves!")
-  // .into_iter()
-  // .map(|(mov, board)| {
-  //   (mov, normalboard_to_fen(&board, turn.opposite_color()))
-  // }).collect();
-
-  // BoardState {
-  //   fen: fen,
-  //   turn: turn,
-  //   win_state: win_state,
-  //   moves: possible_moves,
-  //   history: history
-  // }
+fn fen_to_board_state(mut history: Vec<String>) -> Result<BoardState, ChessError> {
+  generate_board_state_from_fen(history)
 }
 
 #[tauri::command]
@@ -140,39 +126,30 @@ struct BoardState {
 impl BoardState {
   pub fn get_start() -> Result<BoardState, ChessError> {
     let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
-    generate_board_state_from_fen(fen, Vec::new())
-
-
-    // let (normalboard, turn) = parse_fen_to_normalboard(&fen);
-
-    // let possible_moves: Vec<(String, String)> = normalboard.generate_possible_moves(turn)
-    // .expect("Test!")
-    // .into_iter()
-    // .map(|(mov, board)| {
-    //   (mov, normalboard_to_fen(&board, turn.opposite_color()))
-    // }).collect();
-
-
-    // BoardState {
-    //   fen: fen.to_string(),
-    //   turn: turn,
-    //   win_state: EndType::NoEnd,
-    //   moves: possible_moves,
-    //   history: Vec::new()
-    // }
+    generate_board_state_from_fen(vec![fen.to_owned()])
   }
 }
 
-fn generate_board_state_from_fen(fen: &str, history: Vec<String>) -> Result<BoardState, ChessError> {
+fn generate_board_state_from_fen(history: Vec<String>) -> Result<BoardState, ChessError> {
+  let fen = history.last().unwrap();
   let (normalboard, turn) = parse_fen_to_normalboard(fen);
 
-  let win_state = normalboard.check_for_game_end(turn)?;
-  let moves = normalboard.generate_possible_moves(turn)?
-  .into_iter()
-  .map(|(mov, board)| {
-    (mov, normalboard_to_fen(&board, turn.opposite_color()))
-  }).collect();
+  let board_history_hashmap = generate_board_history_hashmap_from_fens(&history);
+  let win_state = normalboard.check_for_game_end(turn, &board_history_hashmap)?;
+
+  let moves = match win_state == EndType::NoEnd {
+      true => {
+        normalboard.generate_possible_moves(turn)?
+        .into_iter()
+        .map(|(mov, board)| {
+          (mov, normalboard_to_fen(&board, turn.opposite_color()))
+        }).collect()
+      },
+      false => {
+        Vec::new()
+      }
+  };
+   
 
   Ok(BoardState {
     fen: fen.to_owned(),
@@ -181,4 +158,22 @@ fn generate_board_state_from_fen(fen: &str, history: Vec<String>) -> Result<Boar
     moves,
     history
   })
+}
+
+fn generate_board_history_hashmap_from_fens(history: &[String]) -> HashMap<NormalBoard, i32> {
+  let mut hashmap = HashMap::new();
+
+  history.iter().for_each(|fen| {
+    let (board, _) = parse_fen_to_normalboard(fen);
+    match hashmap.get_mut(&board) {
+      Some(val) => {
+        *val += 1;
+      },
+      None => {
+        hashmap.insert(board, 1);
+      }
+    }
+  });
+
+  hashmap
 }

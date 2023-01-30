@@ -1,5 +1,5 @@
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum PieceType {
     Pawn = 0,
     Rook = 1,
