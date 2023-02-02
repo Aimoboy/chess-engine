@@ -12,7 +12,7 @@ export class FrontPageComponent {
   public constructor(private _matDialog: MatDialog) {}
 
   onAboutClick() {
-    const dialogRef = this._matDialog.open(AboutComponent, {
+    this._matDialog.open(AboutComponent, {
       width: '400px',
       height: '400px'
     });

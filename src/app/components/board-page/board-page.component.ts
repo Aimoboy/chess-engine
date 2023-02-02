@@ -4,12 +4,14 @@ import { ChessColor } from 'src/app/enums/ChessColor';
 import { ChessType } from 'src/app/enums/ChessType';
 import { invoke } from '@tauri-apps/api';
 import { BoardState } from 'src/app/classes/BoardState';
-import { boardStateResponse, parseServiceBoardStateResponse } from 'src/app/utils/parseUtils';
+import { boardStateResponse, parseFenToBoard, parseServiceBoardStateResponse } from 'src/app/utils/parseUtils';
 import { getChessPiecePictureFromTypeAndColor, isNullOrUndefined } from 'src/app/utils/generalUtils';
 import { MatDialog } from '@angular/material/dialog';
 import { PromotionSelectorComponent } from './promotion-selector/promotion-selector.component';
 import { lastValueFrom } from 'rxjs';
 import { WinState } from 'src/app/enums/WinState';
+import { PlayerType } from 'src/app/enums/PlayerType';
+import { PlayerConfigService } from 'src/app/services/player-config.service';
 
 @Component({
   selector: 'app-board-page',
@@ -29,15 +31,54 @@ export class BoardPageComponent implements OnInit {
   public selectedX: number = -1;
   public selectedY: number = -1;
 
+  private _whitePlayerConfig = this.playerConfigService.getWhitePlayerConfig();
+  private _blackPlayerConfig = this.playerConfigService.getBlackPlayerConfig();
+
   @ViewChild('chessBoard')
   public chessBoard: ElementRef | undefined;
 
-  constructor(private _matDialog: MatDialog) {}
+  constructor(public playerConfigService: PlayerConfigService, private _matDialog: MatDialog) {}
 
-  ngOnInit(): void {
-    invoke<boardStateResponse>('get_start_board_state').then(state => {
+  async ngOnInit(): Promise<void> {
+    await invoke<boardStateResponse>('get_start_board_state').then(state => {
       this.boardState = parseServiceBoardStateResponse(state);
     }, (err) => console.log(err));
+
+    this.handleRequest(this.boardState!.history);
+  }
+
+  private handleRequest(boardHistory: string[]) {
+    this.deselect();
+    this.boardState!.turn = ChessColor.None;
+
+    invoke<boardStateResponse>('handle_request', {
+      boardHistory: boardHistory,
+      whitePlayerConfig: {
+        player_type: this._whitePlayerConfig.playerType,
+        alpha_beta_pruning: this._whitePlayerConfig.alphaBetaPruning,
+        multi_threading: this._whitePlayerConfig.multiThreading,
+        moves_ahead: this._whitePlayerConfig.movesAhead
+      },
+      blackPlayerConfig: {
+        player_type: this._blackPlayerConfig.playerType,
+        alpha_beta_pruning: this._blackPlayerConfig.alphaBetaPruning,
+        multi_threading: this._blackPlayerConfig.multiThreading,
+        moves_ahead: this._blackPlayerConfig.movesAhead
+      }
+    }).then(state => {
+      this.boardState = parseServiceBoardStateResponse(state);
+
+      if (this.boardState.winState !== WinState.NoEnd) {
+        return;
+      }
+
+      if (this.boardState.turn === ChessColor.White && this._whitePlayerConfig.playerType === PlayerType.Human ||
+          this.boardState.turn === ChessColor.Black && this._blackPlayerConfig.playerType === PlayerType.Human) {
+        return;
+      }
+
+      this.handleRequest(this.boardState.history);
+    }, err => console.log(err));
   }
 
   public async onBoardClick(e: MouseEvent) {
@@ -77,20 +118,15 @@ export class BoardPageComponent implements OnInit {
           });
 
           let dialogResult = await lastValueFrom(dialogRef.afterClosed());
-          newFen = promotionFens[dialogResult.data];
+          newFen = promotionFens[dialogResult];
         } else {
           newFen = selectedCellPossibleMoves[0].fen;
         }
+        this.boardState!.board = parseFenToBoard(newFen);
 
-        this.log.push(`${this.boardPosToChessPos(this.selectedX, this.selectedY)} to ${this.boardPosToChessPos(cellX, cellY)}`);
-        this.deselect();
-        this.boardState!.turn = ChessColor.None;
-        
+        this.log.push(`${this.boardPosToChessPos(this.selectedX, this.selectedY)} to ${this.boardPosToChessPos(cellX, cellY)}`);        
         const historyArg = this.boardState!.history.concat([newFen]);
-
-        invoke<boardStateResponse>('fen_to_board_state', {'history': historyArg}).then(state => {
-          this.boardState = parseServiceBoardStateResponse(state);
-        }, err => console.log(err));
+        this.handleRequest(historyArg);
 
         return;
       }
@@ -155,6 +191,11 @@ export class BoardPageComponent implements OnInit {
 
   private cellSelectable(x: number, y: number): boolean {
     if (isNullOrUndefined(this.boardState)) {
+      return false;
+    }
+
+    if (this.boardState!.turn === ChessColor.White && this._whitePlayerConfig.playerType !== PlayerType.Human ||
+        this.boardState!.turn === ChessColor.Black && this._blackPlayerConfig.playerType !== PlayerType.Human) {
       return false;
     }
 

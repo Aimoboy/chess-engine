@@ -48,6 +48,6 @@ export class PromotionSelectorComponent {
   }
 
   public onButtonClicked() {
-    this._dialogRef.close({ data: this.selected });
+    this._dialogRef.close(this.selected);
   }
 }

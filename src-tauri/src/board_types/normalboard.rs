@@ -1149,28 +1149,6 @@ impl NormalBoard {
             EndType::NoEnd
         }
     }
-
-    fn check_board_equality(&self, other: &NormalBoard) -> bool {
-        for i in 0..8 {
-            for j in 0..8 {
-                if self.board[i][j].is_none() && !other.board[i][j].is_none() {
-                    return false;
-                }
-
-                if let Some(piece) = &self.board[i][j] {
-                    if let Some(other_piece) = &other.board[i][j] {
-                        if piece.typ != other_piece.typ || piece.color != other_piece.color {
-                            return false;
-                        }
-                    } else {
-                        return false;
-                    }
-                }
-            }
-        }
-
-        true
-    }
 }
 
 impl ChessBoardContract for NormalBoard {
@@ -1178,8 +1156,8 @@ impl ChessBoardContract for NormalBoard {
         self.generate_possible_moves(turn)
     }
 
-    fn check_game_end(&self, turn: ChessColor, _: &Constants) -> Result<EndType, ChessError> {
-        self.check_for_game_end(turn, &HashMap::new())
+    fn check_game_end(&self, turn: ChessColor, board_history: &HashMap<Self, i32>, _: &Constants) -> Result<EndType, ChessError> {
+        self.check_for_game_end(turn, board_history)
     }
 
     fn board_ascii(&self, use_unicode: bool) -> String {
@@ -1194,5 +1172,118 @@ impl ChessBoardContract for NormalBoard {
         self.iter().map(|(_, piece)| {
             piece_values[piece.typ as usize] * piece.color.side_const()
         }).sum()
+    }
+
+    fn board_to_fen(&self, turn: ChessColor) -> String {
+        let mut fen = String::new();
+    
+        let mut none_counter = 0;
+        for row in (0..8).rev() {
+            for col in 0..8 {
+                let piece = self.get_piece(col, row).expect("Normalboard to FEN piece get");
+    
+                match piece {
+                    Some(piece) => {
+                        if none_counter > 0 {
+                            fen.push(char::from_digit(none_counter, 10).expect("None counter to digit"));
+                            none_counter = 0;
+                        }
+    
+                        let mut piece_letter = match piece.typ {
+                            PieceType::Pawn => 'p',
+                            PieceType::Rook => 'r',
+                            PieceType::Knight => 'n',
+                            PieceType::Bishop => 'b',
+                            PieceType::Queen => 'q',
+                            PieceType::King => 'k',
+                        };
+    
+                        if piece.color == ChessColor::White {
+                            piece_letter = piece_letter.to_ascii_uppercase();
+                        }
+    
+                        fen.push(piece_letter);
+                    },
+                    None => {
+                        none_counter += 1
+                    }
+                }
+            }
+    
+            if row != 0 {
+                if none_counter != 0 {
+                    fen.push(char::from_digit(none_counter, 10).expect("None counter to digit"));
+                    none_counter = 0;
+                }
+                fen.push('/');
+            }
+        }
+    
+        fen.push(' ');
+    
+        match turn {
+            ChessColor::White => {
+                fen.push('w');
+            },
+            ChessColor::Black => {
+                fen.push('b');
+            }
+        }
+    
+        fen.push(' ');
+    
+        if !self.get_white_right_castle() && !self.get_white_left_castle() && !self.get_black_right_castle() && !self.get_black_left_castle() {
+            fen.push('-');
+        } else {
+            if self.get_white_right_castle() {
+                fen.push('K');
+            }
+    
+            if self.get_white_left_castle() {
+                fen.push('Q');
+            }
+    
+            if self.get_black_right_castle() {
+                fen.push('k');
+            }
+    
+            if self.get_black_left_castle() {
+                fen.push('q');
+            }
+        }
+    
+        fen.push(' ');
+    
+        match self.get_en_passant() {
+            None => {
+                fen.push('-');
+            },
+            Some((letter_num, num)) => {
+                let letter = match letter_num {
+                    0 => 'a',
+                    1 => 'b',
+                    2 => 'c',
+                    3 => 'd',
+                    4 => 'e',
+                    5 => 'f',
+                    6 => 'g',
+                    _ => 'h',
+                };
+    
+                let num_char = char::from_digit(num as u32 + 1, 10).expect("Normalboard en passant num to char");
+                fen.push(letter);
+                fen.push(num_char);
+            }
+        }
+    
+        fen.push(' ');
+    
+        fen.push_str(self.get_half_moves().to_string().as_str());
+    
+        fen.push(' ');
+    
+        fen.push_str(self.get_full_moves().to_string().as_str());
+    
+        fen
     }
 }

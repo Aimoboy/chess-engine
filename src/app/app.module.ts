@@ -11,6 +11,7 @@ import { AboutComponent } from './components/about/about.component';
 import { PlayerSettingsComponent } from './components/settings-page/player-settings/player-settings.component';
 import { BoardPageComponent } from './components/board-page/board-page.component';
 import { PromotionSelectorComponent } from './components/board-page/promotion-selector/promotion-selector.component';
+import { AiSettingsComponent } from './components/settings-page/player-settings/ai-settings/ai-settings.component';
 
 @NgModule({
   declarations: [
@@ -20,7 +21,8 @@ import { PromotionSelectorComponent } from './components/board-page/promotion-se
     AboutComponent,
     PlayerSettingsComponent,
     BoardPageComponent,
-    PromotionSelectorComponent
+    PromotionSelectorComponent,
+    AiSettingsComponent
   ],
   imports: [
     BrowserModule,

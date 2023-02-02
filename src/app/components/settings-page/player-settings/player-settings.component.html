@@ -1,23 +1,29 @@
 
 <div class="d-flex flex-column">
-    <span class="d-flex justify-content-center" style="margin-bottom: 50px">{{name}}</span>
-    <div class="d-flex flex-row">
-        <div class="d-flex" style="flex: 1"></div>
-        <div class="d-flex flex-column" style="flex: 1">
-            <mat-button-toggle-group [vertical]="true" #group="matButtonToggleGroup">
-                <mat-button-toggle value="human">Human</mat-button-toggle>
-                <mat-button-toggle value="ai">AI</mat-button-toggle>
-            </mat-button-toggle-group>
-        </div>
-        <div class="d-flex flex-column align-items-center" style="flex: 1">
-            <mat-button-toggle-group *ngIf="group.value !== 'human' && group.value !== undefined" [vertical]="true" style="width: 100px">
-                <mat-button-toggle>Minimax</mat-button-toggle>
-            </mat-button-toggle-group>
-            <section *ngIf="group.value !== 'human' && group.value !== undefined" class="d-flex flex-column">
-                <mat-checkbox color="primary">Alpha-Beta Pruning</mat-checkbox>
-                <mat-checkbox color="primary">Threads</mat-checkbox>
-                <mat-checkbox color="primary">Randomize Move</mat-checkbox>
-            </section>
-        </div>
+    <span class="d-flex justify-content-center mat-h2" style="margin-bottom: 50px">{{name}}</span>
+    <div class="d-flex justify-content-center">
+        <button style="width: 150px; margin-right: 50px"
+                [color]="playerConfig?.playerType === playerType.Human ? 'primary' : 'accent'"
+                (click)="onHumanButtonClicked()"
+                mat-raised-button>
+            Human
+        </button>
+        <button style="width: 150px; margin-right: 5px"
+        [color]="playerConfig?.playerType === playerType.Minimax ? 'primary' : 'accent'"
+                (click)="onAIButtonClicked()"
+                mat-raised-button>
+            AI
+        </button>
+        <button style="width: 100px"
+                color="primary"
+                [disabled]="playerConfig?.playerType === playerType.Human"
+                (click)="onSettingsButtonClicked()"
+                mat-raised-button>
+            Settings
+        </button>
     </div>
+    <span class="d-flex justify-content-center"
+          style="margin-top: 10px">
+        {{getConfigurationText()}}
+    </span>
 </div>

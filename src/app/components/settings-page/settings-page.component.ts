@@ -1,5 +1,6 @@
-import { Component, ViewChild } from '@angular/core';
-import { PlayerSettingsComponent } from './player-settings/player-settings.component';
+import { Component } from '@angular/core';
+import { PlayerConfig } from 'src/app/classes/PlayerConfig';
+import { PlayerConfigService } from 'src/app/services/player-config.service';
 
 @Component({
   selector: 'app-settings-page',
@@ -8,14 +9,6 @@ import { PlayerSettingsComponent } from './player-settings/player-settings.compo
 })
 export class SettingsPageComponent {
 
-  public nextDisabled = false;
-
-  @ViewChild('whiteSettings')
-  public whiteSettings: PlayerSettingsComponent | null = null;
-
-  @ViewChild('blackSettings')
-  public blackSettings: PlayerSettingsComponent | null = null;
-
-  
+  constructor(public playerConfigService: PlayerConfigService) { }
 
 }

@@ -16,7 +16,7 @@ export function parseServiceBoardStateResponse(boardState: boardStateResponse): 
     return new BoardState(board, possibleMoves, turn, winState, boardState.history);
 }
 
-function parseFenToBoard(fen: string): (ChessPiece | null)[][] {
+export function parseFenToBoard(fen: string): (ChessPiece | null)[][] {
     const fenBoardPart = fen.split(' ')[0];
     let board = emptyBoard();
 

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::enums::chess_error::ChessError;
 use crate::functions::{
     get_letter,
@@ -1295,7 +1297,7 @@ pub fn board_to_bitboard(board: &NormalBoard) -> BitBoard{
     res
 }
 
-pub fn bitboard_check_game_end(bb: &BitBoard, turn: ChessColor, constants: &Constants) -> EndType {
+pub fn bitboard_check_game_end(bb: &BitBoard, turn: ChessColor, board_history: &HashMap<BitBoard, i32>, constants: &Constants) -> EndType {
     let opponent_color = turn.opposite_color();
     let possible_moves = generate_possible_moves(bb, turn, constants);
 
@@ -1721,8 +1723,8 @@ impl ChessBoardContract for BitBoard {
         Ok(res)
     }
 
-    fn check_game_end(&self, turn: ChessColor, constants: &Constants) -> Result<EndType, ChessError> {
-        Ok(bitboard_check_game_end(self, turn, constants))
+    fn check_game_end(&self, turn: ChessColor, board_history: &HashMap<Self, i32>, constants: &Constants) -> Result<EndType, ChessError> {
+        Ok(bitboard_check_game_end(self, turn, board_history, constants))
     }
 
     fn get_value_of_pieces(&self, piece_values: [i32; 6]) -> i32 {
@@ -1751,6 +1753,10 @@ impl ChessBoardContract for BitBoard {
 
     fn board_ascii(&self, use_unicode: bool) -> String {
         get_bitboard_ascii(self, use_unicode)
+    }
+
+    fn board_to_fen(&self, turn: ChessColor) -> String {
+        todo!();
     }
 
 }

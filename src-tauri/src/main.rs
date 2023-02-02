@@ -42,8 +42,7 @@ use std::{vec, hash::{Hash, Hasher}, collections::HashMap};
 
 use crate::{
   functions::{
-    parse_fen_to_normalboard,
-    normalboard_to_fen
+    parse_fen_to_normalboard
   },
   board_types::{
     normalboard::NormalBoard
@@ -54,13 +53,14 @@ use crate::{
   }
 };
 
-use crate::turn_functions::{
-  player_move::player_move
-};
+// use crate::turn_functions::{
+//   player_move::player_move
+// };
 
 use board_types::bitboard::{Constants, BitBoard};
 use enums::end_type::EndType;
-use serde::Serialize;
+use crate::evaluation_functions::board_piece_evaluation::board_piece_evaluation;
+use serde::{Serialize, Deserialize};
 use turn_functions::minimax_move::minimax_move;
 
 use sha1::{Sha1, Digest};
@@ -70,44 +70,129 @@ use traits::{
   chess_board_contract::ChessBoardContract
 };
 
-pub type EvaluationFunction<T: ChessBoardContract> = fn(&T, &Vec<T>, i32, &Constants) -> Result<i32, ChessError>;
+pub type EvaluationFunction<T> = fn(&T, &HashMap<T, i32>, ChessColor, i32, &Constants) -> Result<i32, ChessError>;
 
-pub struct Player<T: 'static + ChessBoardContract> {
-    turn_function: Box<dyn Fn(&T, &Vec<T>, ChessColor, &Player<T>, &Constants) -> Result<String, ChessError>>,
-    moves_ahead: i32
-}
+// pub struct Player<T: 'static + ChessBoardContract> {
+//     turn_function: Box<dyn Fn(&T, &Vec<T>, ChessColor, &Player<T>, &Constants) -> Result<String, ChessError>>,
+//     moves_ahead: i32
+// }
 
-impl<T: 'static + ChessBoardContract + Clone + Send + Sync> Player<T> {
-    pub fn human_player() -> Self {
-        Self {
-            turn_function: Box::new(player_move),
-            moves_ahead: 0
-        }
-    }
+// impl<T: 'static + ChessBoardContract + Clone + Send + Sync> Player<T> {
+//     pub fn human_player() -> Self {
+//         Self {
+//             turn_function: Box::new(player_move),
+//             moves_ahead: 0
+//         }
+//     }
 
-    pub fn minimax_bot(moves_ahead: i32, eval_func: EvaluationFunction<T>, alpha_beta_pruning: bool, multi_threading: bool) -> Self {
-        Self {
-            turn_function: {
-                Box::new(move |board: &T, board_history: &Vec<T>, turn: ChessColor, player: &Player<T>, constants: &Constants| -> Result<String, ChessError> {
-                    minimax_move(board, board_history, turn, player, eval_func, constants, alpha_beta_pruning, multi_threading)
-                })
-            },
-            moves_ahead: moves_ahead
-        }
-    }
-}
+//     pub fn minimax_bot(moves_ahead: i32, eval_func: EvaluationFunction<T>, alpha_beta_pruning: bool, multi_threading: bool) -> Self {
+//         Self {
+//             turn_function: {
+//                 Box::new(move |board: &T, board_history: &HashMap<T, i32>, turn: ChessColor, player: &Player<T>, constants: &Constants| -> Result<String, ChessError> {
+//                     minimax_move(board, board_history, turn, player, eval_func, constants, alpha_beta_pruning, multi_threading)
+//                 })
+//             },
+//             moves_ahead: moves_ahead
+//         }
+//     }
+// }
 
 fn main() {
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![fen_to_board_state, get_start_board_state])
+    .invoke_handler(tauri::generate_handler![handle_request, get_start_board_state])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
 
-#[tauri::command]
-fn fen_to_board_state(mut history: Vec<String>) -> Result<BoardState, ChessError> {
-  generate_board_state_from_fen(history)
+#[derive(Deserialize, Debug)]
+enum PlayerType {
+  Human = 0,
+  Minimax = 1
 }
+
+#[derive(Deserialize)]
+struct PlayerConfig {
+  player_type: i32,
+  alpha_beta_pruning: bool,
+  multi_threading: bool,
+  moves_ahead: i32
+}
+
+#[tauri::command(async)]
+fn handle_request(board_history: Vec<String>, white_player_config: PlayerConfig, black_player_config: PlayerConfig) -> Result<BoardState, ChessError> {
+  // let (current_fen, board_history_hashmap) = fen_history_to_current_fen_and_history_hashmap(&board_history);
+  let state = generate_board_state_from_fen(&board_history)?;
+
+  if state.turn == ChessColor::White && white_player_config.player_type == PlayerType::Human as i32 ||
+     state.turn == ChessColor::Black && black_player_config.player_type == PlayerType::Human as i32 {
+    Ok(state)
+  } else {
+    let last = state.history.last().unwrap();
+    let (normalboard, _) = parse_fen_to_normalboard(last);
+    let board_history_hashmap = generate_board_history_hashmap_from_fens(&state.history);
+
+    let (alpha_beta_pruning, multi_threading, moves_ahead) = match state.turn {
+        ChessColor::White => (white_player_config.alpha_beta_pruning, white_player_config.multi_threading, white_player_config.moves_ahead),
+        ChessColor::Black => (black_player_config.alpha_beta_pruning, black_player_config.multi_threading, black_player_config.moves_ahead)
+    };
+
+    let mov = minimax_move(&normalboard, &board_history_hashmap, state.turn, moves_ahead, board_piece_evaluation, &Constants::empty(), alpha_beta_pruning, multi_threading).unwrap();
+    let mov_fen = &state.moves.iter().filter(|(m, fen)| {
+      mov == *m
+    }).into_iter().collect::<Vec<_>>().first().unwrap().1;
+
+    let mut new_history = state.history.clone();
+    new_history.push(mov_fen.clone());
+
+    generate_board_state_from_fen(&new_history)
+  }
+}
+
+// fn fen_history_to_current_fen_and_history_hashmap(board_history: &[String]) -> (String, HashMap<NormalBoard, i32>) {
+//   let current = board_history.last().unwrap();
+//   let board_history_hashmap = generate_board_history_hashmap_from_fens(board_history);
+
+//   (current.clone(), board_history_hashmap)
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// #[tauri::command]
+// fn fen_to_board_state(history: Vec<String>) -> Result<BoardState, ChessError> {
+//   let state = generate_board_state_from_fen(&history);
+
+//   if let Ok(state) = &state {
+//     if state.turn == ChessColor::Black {
+//       let last = state.history.last().unwrap();
+//       let (normalboard, _) = parse_fen_to_normalboard(last);
+//       let board_history = generate_board_history_hashmap_from_fens(&state.history);
+
+//       let mov = minimax_move(&normalboard, &board_history, ChessColor::Black, 3, board_piece_evaluation, &Constants::empty(), true, true).unwrap();
+//       let mov_fen = &state.moves.iter().filter(|(m, fen)| {
+//         mov == *m
+//       }).into_iter().collect::<Vec<_>>().first().unwrap().1;
+
+//       let mut new_history = state.history.clone();
+//       new_history.push(mov_fen.clone());
+
+//       return generate_board_state_from_fen(&new_history);
+//     }
+//   }
+
+//   state
+// }
 
 #[tauri::command]
 fn get_start_board_state() -> Result<BoardState, ChessError> {
@@ -126,11 +211,11 @@ struct BoardState {
 impl BoardState {
   pub fn get_start() -> Result<BoardState, ChessError> {
     let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    generate_board_state_from_fen(vec![fen.to_owned()])
+    generate_board_state_from_fen(vec![fen.to_owned()].as_ref())
   }
 }
 
-fn generate_board_state_from_fen(history: Vec<String>) -> Result<BoardState, ChessError> {
+fn generate_board_state_from_fen(history: &Vec<String>) -> Result<BoardState, ChessError> {
   let fen = history.last().unwrap();
   let (normalboard, turn) = parse_fen_to_normalboard(fen);
 
@@ -142,7 +227,7 @@ fn generate_board_state_from_fen(history: Vec<String>) -> Result<BoardState, Che
         normalboard.generate_possible_moves(turn)?
         .into_iter()
         .map(|(mov, board)| {
-          (mov, normalboard_to_fen(&board, turn.opposite_color()))
+          (mov, board.board_to_fen(turn.opposite_color()))
         }).collect()
       },
       false => {
@@ -156,7 +241,7 @@ fn generate_board_state_from_fen(history: Vec<String>) -> Result<BoardState, Che
     turn,
     win_state,
     moves,
-    history
+    history: history.clone()
   })
 }
 
