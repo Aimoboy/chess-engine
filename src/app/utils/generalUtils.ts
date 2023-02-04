@@ -46,5 +46,5 @@ export function getChessPiecePictureFromTypeAndColor(type: ChessType, color: Che
         break;
     }
 
-    return `url(../../../assets/${pieceString}.png)`;
+    return `url(../../../assets/pieces/${pieceString}.png)`;
   }
