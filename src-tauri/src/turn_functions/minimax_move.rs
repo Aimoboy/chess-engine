@@ -92,9 +92,9 @@ pub fn minimax_move<T: ChessBoardContract + Eq + Hash + Clone + Send + Sync>(boa
 
                         results
                     })
-                });
+                }).collect::<Vec<_>>();
 
-                handles.flat_map(|h| h.join().unwrap())
+                handles.into_iter().flat_map(|h| h.join().unwrap())
                     .fold(Ok(Vec::new()), |acc, item| {
                     let mut acc_val: Vec<(i32, String)> = acc?;
                     let item_val = item?;
