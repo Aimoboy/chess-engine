@@ -126,6 +126,12 @@ export class BoardPageComponent implements OnInit {
 
         this.log.push(`${this.boardPosToChessPos(this.selectedX, this.selectedY)} to ${this.boardPosToChessPos(cellX, cellY)}`);        
         const historyArg = this.boardState!.history.concat([newFen]);
+
+        let audio = new Audio('../../../assets/audio/piece_move.mp3');
+        audio.load();
+        audio.play();
+
+
         this.handleRequest(historyArg);
 
         return;
